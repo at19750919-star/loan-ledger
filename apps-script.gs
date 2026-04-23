@@ -18,6 +18,7 @@
 const DEBTORS_SHEET = 'Debtors';
 const PAYMENTS_SHEET = 'Payments';
 const META_SHEET = 'Meta';
+const EXTRA_SHEETS = ['股東']; // 程式不會讀寫，僅確保分頁存在供手動記錄
 
 const DEBTOR_COLS = ['id', 'name', 'day', 'amount', 'principal', 'interest', 'phone', 'notes', 'createdAt'];
 const DEBTOR_HEADERS = ['編號', '姓名', '月付款日', '月應收金額', '本金', '利息', '電話', '備註', '建立時間'];
@@ -42,6 +43,15 @@ function getOrCreateSheet_(name, cols, headers) {
     sh.setFrozenRows(1);
   }
   return sh;
+}
+
+function ensureExtraSheets_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  for (const name of EXTRA_SHEETS) {
+    if (!ss.getSheetByName(name)) {
+      ss.insertSheet(name);
+    }
+  }
 }
 
 function jsonOut_(obj) {
@@ -94,6 +104,7 @@ function doGet(e) {
     const debtorsSh = getOrCreateSheet_(DEBTORS_SHEET, DEBTOR_COLS, DEBTOR_HEADERS);
     const paymentsSh = getOrCreateSheet_(PAYMENTS_SHEET, PAYMENT_COLS, PAYMENT_HEADERS);
     const metaSh = getOrCreateSheet_(META_SHEET, META_COLS, META_HEADERS);
+    ensureExtraSheets_();
 
     const debtorRows = readSheet_(debtorsSh, DEBTOR_COLS);
     const paymentRows = readSheet_(paymentsSh, PAYMENT_COLS);
@@ -160,6 +171,7 @@ function doPost(e) {
     const debtorsSh = getOrCreateSheet_(DEBTORS_SHEET, DEBTOR_COLS, DEBTOR_HEADERS);
     const paymentsSh = getOrCreateSheet_(PAYMENTS_SHEET, PAYMENT_COLS, PAYMENT_HEADERS);
     const metaSh = getOrCreateSheet_(META_SHEET, META_COLS, META_HEADERS);
+    ensureExtraSheets_();
 
     // Debtors
     const debtorRows = debtors.map(d => ({
