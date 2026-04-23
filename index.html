@@ -411,6 +411,19 @@ body {
   border-color: var(--red);
   color: var(--red);
 }
+.cloud-status {
+  max-width: 1280px;
+  margin: -12px auto 12px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  color: var(--text-dim);
+  text-align: right;
+  min-height: 18px;
+  letter-spacing: 0.05em;
+}
+.cloud-status.ok { color: #8ab77a; }
+.cloud-status.err { color: var(--red); }
+.cloud-status.pending { color: var(--gold); }
 
 /* ============ Modal ============ */
 .modal-backdrop {
@@ -656,7 +669,6 @@ body {
     text-align: center;
     white-space: nowrap;
   }
-  .toolbar .btn.primary { grid-column: span 2; }
   .debtor-card {
     grid-template-columns: auto 1fr;
     grid-template-rows: auto auto;
@@ -703,8 +715,10 @@ body {
   <button class="btn" onclick="exportData()">◆ 匯出備份</button>
   <button class="btn" onclick="document.getElementById('importFile').click()">◆ 匯入還原</button>
   <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+  <button class="btn" onclick="openCloudSettings()" id="btnCloud">◆ 雲端設定</button>
   <button class="btn primary" onclick="openDebtorModal()">+ 新增借款人</button>
 </div>
+<div id="cloudStatus" class="cloud-status"></div>
 
 <div class="container">
   <!-- Left: Alerts -->
@@ -856,10 +870,91 @@ body {
 <script>
 // ============ State ============
 const KEY = 'loanLedgerV1';
+const CLOUD_URL_KEY = 'loanLedgerCloudUrl';
 let state = loadState();
 let editingId = null;
 let paymentTargetId = null;
 let viewingId = null;
+let cloudSaveTimer = null;
+
+// ============ 雲端同步（Google Apps Script Web App） ============
+function getCloudUrl() {
+  return (localStorage.getItem(CLOUD_URL_KEY) || '').trim();
+}
+function setCloudStatus(msg, type) {
+  const el = document.getElementById('cloudStatus');
+  if (!el) return;
+  el.textContent = msg || '';
+  el.className = 'cloud-status' + (type ? ' ' + type : '');
+}
+function openCloudSettings() {
+  const current = getCloudUrl();
+  const next = prompt('貼上 Google Apps Script 網頁應用程式 URL\n（留空則關閉雲端同步，只用本機儲存）', current);
+  if (next === null) return;
+  const trimmed = next.trim();
+  if (!trimmed) {
+    localStorage.removeItem(CLOUD_URL_KEY);
+    setCloudStatus('雲端同步已關閉（使用本機儲存）', '');
+    updateCloudButton();
+    return;
+  }
+  if (!/^https:\/\/script\.google(usercontent)?\.com\//.test(trimmed)) {
+    if (!confirm('這看起來不像 Apps Script Web App URL，仍要儲存嗎？')) return;
+  }
+  localStorage.setItem(CLOUD_URL_KEY, trimmed);
+  updateCloudButton();
+  setCloudStatus('測試連線中…', 'pending');
+  cloudLoad(true);
+}
+function updateCloudButton() {
+  const btn = document.getElementById('btnCloud');
+  if (!btn) return;
+  btn.textContent = getCloudUrl() ? '◆ 雲端已連線' : '◆ 雲端設定';
+}
+async function cloudLoad(replaceLocal) {
+  const url = getCloudUrl();
+  if (!url) return;
+  try {
+    setCloudStatus('雲端讀取中…', 'pending');
+    const res = await fetch(url, { method: 'GET' });
+    const json = await res.json();
+    if (!json.ok) throw new Error(json.error || 'load failed');
+    if (json.data && json.data.debtors && Array.isArray(json.data.debtors)) {
+      state = json.data;
+      localStorage.setItem(KEY, JSON.stringify(state));
+      render();
+      setCloudStatus('已從雲端載入 · ' + new Date().toLocaleTimeString('zh-TW'), 'ok');
+    } else {
+      // 雲端還沒資料，把目前本機資料推上去
+      setCloudStatus('雲端為空，上傳本機資料…', 'pending');
+      cloudSaveNow();
+    }
+  } catch (err) {
+    setCloudStatus('雲端讀取失敗：' + err.message, 'err');
+  }
+}
+function cloudSave() {
+  if (!getCloudUrl()) return;
+  if (cloudSaveTimer) clearTimeout(cloudSaveTimer);
+  setCloudStatus('雲端同步中…', 'pending');
+  cloudSaveTimer = setTimeout(cloudSaveNow, 800);
+}
+async function cloudSaveNow() {
+  const url = getCloudUrl();
+  if (!url) return;
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(state)
+    });
+    const json = await res.json();
+    if (!json.ok) throw new Error(json.error || 'save failed');
+    setCloudStatus('已同步到雲端 · ' + new Date().toLocaleTimeString('zh-TW'), 'ok');
+  } catch (err) {
+    setCloudStatus('雲端同步失敗：' + err.message, 'err');
+  }
+}
 
 function loadState() {
   try {
@@ -880,6 +975,7 @@ function loadState() {
 }
 function saveState() {
   localStorage.setItem(KEY, JSON.stringify(state));
+  cloudSave();
 }
 
 // 首次開啟時預填的借款人資料（來自 Excel 截圖）
@@ -1545,7 +1641,9 @@ document.addEventListener('keydown', (e) => {
 
 render();
 updateNotifyButton();
+updateCloudButton();
 checkAndNotify();
+if (getCloudUrl()) cloudLoad();
 </script>
 </body>
 </html>
