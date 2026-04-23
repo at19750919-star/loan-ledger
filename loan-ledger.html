@@ -1,0 +1,1537 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>借貸管理帳簿</title>
+<!-- PWA manifest（data URL 內嵌，不需額外檔案） -->
+<link rel="manifest" href='data:application/manifest+json,{"name":"借貸管理帳簿","short_name":"借貸帳簿","start_url":".","display":"standalone","background_color":"%230a0806","theme_color":"%23d4af37","icons":[{"src":"data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 512 512%22><rect width=%22512%22 height=%22512%22 fill=%22%230a0806%22/><text x=%22256%22 y=%22340%22 font-size=%22300%22 text-anchor=%22middle%22 fill=%22%23d4af37%22 font-family=%22serif%22>借</text></svg>","sizes":"any","type":"image/svg+xml"}]}'>
+<meta name="theme-color" content="#d4af37">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="借貸帳簿">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Noto+Serif+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gold: #d4af37;
+  --gold-bright: #f4cf5c;
+  --gold-deep: #9a7b1e;
+  --gold-glow: rgba(212, 175, 55, 0.4);
+  --bg-black: #0a0806;
+  --bg-surface: #14110c;
+  --bg-card: #1c1812;
+  --bg-elevated: #252019;
+  --line: #3a3025;
+  --line-gold: rgba(212, 175, 55, 0.25);
+  --text-primary: #f5e9c8;
+  --text-secondary: #a89878;
+  --text-dim: #6b5f48;
+  --red: #c03a2b;
+  --green: #7fb069;
+  --orange: #e08a3c;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--bg-black);
+  color: var(--text-primary);
+  font-family: 'Noto Serif TC', serif;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  background:
+    radial-gradient(ellipse at top, rgba(212, 175, 55, 0.08), transparent 60%),
+    radial-gradient(ellipse at bottom, rgba(154, 123, 30, 0.05), transparent 60%),
+    var(--bg-black);
+  background-attachment: fixed;
+  padding: 32px 24px 80px;
+}
+
+/* ============ Header ============ */
+.header {
+  max-width: 1280px;
+  margin: 0 auto 32px;
+  padding: 24px 32px;
+  border: 1px solid var(--line-gold);
+  background: linear-gradient(180deg, var(--bg-surface) 0%, var(--bg-card) 100%);
+  position: relative;
+  overflow: hidden;
+}
+.header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, transparent, var(--gold-glow), transparent) top / 100% 1px no-repeat,
+    linear-gradient(90deg, transparent, var(--gold-glow), transparent) bottom / 100% 1px no-repeat;
+  pointer-events: none;
+}
+.header-corner {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--gold);
+}
+.header-corner.tl { top: 8px; left: 8px; border-right: none; border-bottom: none; }
+.header-corner.tr { top: 8px; right: 8px; border-left: none; border-bottom: none; }
+.header-corner.bl { bottom: 8px; left: 8px; border-right: none; border-top: none; }
+.header-corner.br { bottom: 8px; right: 8px; border-left: none; border-top: none; }
+
+.header-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.brand h1 {
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  font-size: 28px;
+  letter-spacing: 0.15em;
+  background: linear-gradient(180deg, var(--gold-bright), var(--gold-deep));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.brand .sub {
+  font-family: 'Noto Serif TC', serif;
+  font-size: 14px;
+  color: var(--text-secondary);
+  letter-spacing: 0.3em;
+  margin-top: 4px;
+}
+.brand-ornament {
+  color: var(--gold);
+  font-size: 14px;
+  margin: 0 8px;
+  opacity: 0.6;
+}
+
+.header-stats {
+  display: flex;
+  gap: 48px;
+  align-items: center;
+}
+.stat {
+  text-align: right;
+  position: relative;
+}
+.stat + .stat {
+  padding-left: 48px;
+}
+.stat + .stat::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 10%;
+  height: 80%;
+  width: 1px;
+  background: linear-gradient(to bottom, transparent, rgba(212, 175, 55, 0.35), transparent);
+}
+.stat-label {
+  font-family: 'Cinzel', serif;
+  font-size: 14px;
+  letter-spacing: 0.2em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+.stat-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--gold);
+  margin-top: 2px;
+}
+.stat-value.big { font-size: 28px; }
+
+/* ============ Layout ============ */
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+@media (min-width: 1100px) {
+  .container { grid-template-columns: 1.3fr 1fr; }
+}
+
+.panel {
+  background: var(--bg-surface);
+  border: 1px solid var(--line);
+  position: relative;
+}
+.panel-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--line-gold);
+  background: linear-gradient(90deg, var(--bg-elevated), var(--bg-card));
+}
+.panel-title h2 {
+  font-family: 'Cinzel', serif;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.25em;
+  color: var(--gold);
+  text-transform: uppercase;
+}
+.panel-title .count {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  color: var(--text-dim);
+  padding: 2px 8px;
+  border: 1px solid var(--line);
+  background: var(--bg-black);
+}
+
+/* ============ Alert cards (today / upcoming) ============ */
+.alert-section { padding: 20px 24px; }
+.alert-section + .alert-section { border-top: 1px solid var(--line); }
+.alert-section h3 {
+  font-family: 'Cinzel', serif;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.25em;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.alert-section h3::before {
+  content: '◆';
+  color: var(--gold);
+}
+.alert-empty {
+  color: var(--text-dim);
+  font-size: 14px;
+  padding: 12px 16px;
+  border: 1px dashed var(--line);
+  text-align: center;
+}
+
+.debtor-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  gap: 16px;
+  align-items: center;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  background: var(--bg-card);
+  margin-bottom: 8px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  position: relative;
+}
+.debtor-card:hover {
+  border-color: var(--gold);
+  background: var(--bg-elevated);
+  transform: translateX(2px);
+}
+.debtor-card.overdue {
+  border-color: var(--red);
+  background: linear-gradient(90deg, rgba(192, 58, 43, 0.15), var(--bg-card) 40%);
+}
+.debtor-card.today {
+  border-color: var(--gold);
+  background: linear-gradient(90deg, rgba(212, 175, 55, 0.15), var(--bg-card) 40%);
+  box-shadow: 0 0 20px rgba(212, 175, 55, 0.1);
+}
+.debtor-card.soon {
+  border-color: var(--orange);
+}
+.day-badge {
+  font-family: 'Cinzel', serif;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--gold);
+  min-width: 48px;
+  text-align: center;
+  border-right: 1px solid var(--line);
+  padding-right: 16px;
+}
+.day-badge .label {
+  display: block;
+  font-family: 'Noto Serif TC', serif;
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: 0.2em;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+.debtor-card.overdue .day-badge { color: var(--red); }
+.debtor-card.today .day-badge { color: var(--gold-bright); }
+
+.debtor-name {
+  font-family: 'Noto Serif TC', serif;
+  font-size: 17px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+.debtor-meta {
+  font-size: 14px;
+  color: var(--text-dim);
+  margin-top: 2px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.debtor-amount {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--gold);
+  text-align: right;
+}
+.debtor-amount .unit {
+  font-size: 14px;
+  color: var(--text-dim);
+  margin-right: 4px;
+}
+
+.btn-record {
+  font-family: 'Cinzel', serif;
+  font-size: 14px;
+  letter-spacing: 0.2em;
+  padding: 8px 14px;
+  border: 1px solid var(--gold);
+  background: transparent;
+  color: var(--gold);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+}
+.btn-record:hover {
+  background: var(--gold);
+  color: var(--bg-black);
+}
+
+/* ============ Right panel: list of all debtors ============ */
+.debtor-list {
+  padding: 16px 24px;
+  max-height: 700px;
+  overflow-y: auto;
+}
+
+.ledger-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.ledger-row:hover { padding-left: 8px; }
+.ledger-row:last-child { border-bottom: none; }
+.ledger-name {
+  font-family: 'Noto Serif TC', serif;
+  font-size: 16px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ledger-name .dot {
+  width: 6px;
+  height: 6px;
+  background: var(--gold);
+  border-radius: 50%;
+  box-shadow: 0 0 6px var(--gold-glow);
+}
+.ledger-info {
+  font-size: 14px;
+  color: var(--text-dim);
+  margin-top: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.05em;
+}
+.ledger-amount {
+  text-align: right;
+}
+.ledger-amount .outstanding {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 15px;
+  color: var(--gold);
+  font-weight: 500;
+}
+.ledger-amount .paid {
+  font-size: 14px;
+  color: var(--green);
+  margin-top: 2px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* ============ Toolbar ============ */
+.toolbar {
+  max-width: 1280px;
+  margin: 0 auto 24px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.btn {
+  font-family: 'Cinzel', serif;
+  font-size: 14px;
+  letter-spacing: 0.2em;
+  padding: 10px 20px;
+  border: 1px solid var(--line-gold);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+}
+.btn:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+  background: var(--bg-card);
+}
+.btn.primary {
+  border-color: var(--gold);
+  color: var(--gold-bright);
+  background: linear-gradient(180deg, rgba(212, 175, 55, 0.15), rgba(154, 123, 30, 0.05));
+}
+.btn.primary:hover {
+  background: var(--gold);
+  color: var(--bg-black);
+  box-shadow: 0 0 20px var(--gold-glow);
+}
+.btn.danger:hover {
+  border-color: var(--red);
+  color: var(--red);
+}
+
+/* ============ Modal ============ */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(4px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 24px;
+  animation: fadeIn 0.2s;
+}
+.modal-backdrop.active { display: flex; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.modal {
+  background: var(--bg-surface);
+  border: 1px solid var(--gold);
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.8), 0 0 80px var(--gold-glow);
+  animation: slideIn 0.25s ease-out;
+}
+@keyframes slideIn {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 28px;
+  border-bottom: 1px solid var(--line-gold);
+  background: linear-gradient(90deg, var(--bg-elevated), var(--bg-card));
+}
+.modal-title {
+  font-family: 'Cinzel', serif;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  color: var(--gold);
+  text-transform: uppercase;
+}
+.modal-close {
+  background: none;
+  border: 1px solid var(--line);
+  color: var(--text-secondary);
+  font-size: 18px;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.modal-close:hover {
+  border-color: var(--red);
+  color: var(--red);
+}
+.modal-body { padding: 28px; }
+
+.form-group { margin-bottom: 20px; }
+.form-group label {
+  display: block;
+  font-family: 'Cinzel', serif;
+  font-size: 14px;
+  letter-spacing: 0.25em;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+.form-group input, .form-group select, .form-group textarea {
+  width: 100%;
+  background: var(--bg-black);
+  border: 1px solid var(--line);
+  color: var(--text-primary);
+  padding: 12px 14px;
+  font-family: 'Noto Serif TC', serif;
+  font-size: 15px;
+  transition: border-color 0.2s;
+}
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 10px var(--gold-glow);
+}
+.form-group textarea { resize: vertical; min-height: 80px; font-family: 'Noto Serif TC', serif; }
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.modal-footer {
+  padding: 20px 28px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+/* ============ Detail View ============ */
+.detail-header {
+  padding: 20px 28px;
+  border-bottom: 1px solid var(--line);
+}
+.detail-name {
+  font-family: 'Cinzel', serif;
+  font-size: 22px;
+  color: var(--gold);
+  letter-spacing: 0.1em;
+  margin-bottom: 8px;
+}
+.detail-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-top: 16px;
+}
+.detail-meta-item {
+  padding: 10px 12px;
+  background: var(--bg-black);
+  border-left: 2px solid var(--gold);
+}
+.detail-meta-item .lbl {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+.detail-meta-item .val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  color: var(--text-primary);
+  margin-top: 2px;
+}
+
+.history-section {
+  padding: 20px 28px;
+}
+.history-section h4 {
+  font-family: 'Cinzel', serif;
+  font-size: 14px;
+  letter-spacing: 0.25em;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.history-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  background: var(--bg-card);
+  margin-bottom: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+}
+.history-item .date { color: var(--text-secondary); }
+.history-item .split { color: var(--text-dim); font-size: 14px; }
+.history-item .total { color: var(--gold); font-weight: 500; }
+.history-item .del {
+  background: none;
+  border: 1px solid var(--line);
+  color: var(--text-dim);
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 14px;
+}
+.history-item .del:hover { border-color: var(--red); color: var(--red); }
+
+/* ============ Scrollbar ============ */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--bg-black); }
+::-webkit-scrollbar-thumb { background: var(--line); }
+::-webkit-scrollbar-thumb:hover { background: var(--gold-deep); }
+
+/* ============ Decorative ornament ============ */
+.ornament-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 8px 0;
+  color: var(--gold);
+  opacity: 0.4;
+  font-size: 14px;
+}
+.ornament-divider::before, .ornament-divider::after {
+  content: '';
+  height: 1px;
+  flex: 1;
+  background: linear-gradient(90deg, transparent, var(--line-gold), transparent);
+}
+
+/* ============ Empty state ============ */
+.empty-state {
+  padding: 60px 24px;
+  text-align: center;
+  color: var(--text-dim);
+}
+.empty-state .big {
+  font-family: 'Cinzel', serif;
+  font-size: 48px;
+  color: var(--gold);
+  opacity: 0.3;
+  margin-bottom: 16px;
+}
+.empty-state p {
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* ============ Mobile ============ */
+@media (max-width: 700px) {
+  body { padding: 16px 12px 60px; }
+  .header { padding: 16px 20px; }
+  .header-inner { flex-direction: column; align-items: flex-start; }
+  .header-stats { width: 100%; justify-content: space-between; gap: 20px; }
+  .stat { text-align: left; }
+  .stat + .stat { padding-left: 20px; }
+  .stat-value { font-size: 18px; }
+  .stat-value.big { font-size: 22px; }
+  .brand h1 { font-size: 22px; }
+  .debtor-card {
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto auto;
+    gap: 8px 12px;
+  }
+  .debtor-amount { grid-column: 2; text-align: left; font-size: 16px; }
+  .btn-record { grid-column: 1 / -1; justify-self: stretch; }
+  .form-row { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <span class="header-corner tl"></span>
+  <span class="header-corner tr"></span>
+  <span class="header-corner bl"></span>
+  <span class="header-corner br"></span>
+  <div class="header-inner">
+    <div class="brand">
+      <h1>借貸 <span class="brand-ornament">✦</span> 帳簿</h1>
+      <div class="sub">借 · 貸 · 管 · 理</div>
+    </div>
+    <div class="header-stats">
+      <div class="stat">
+        <div class="stat-label">借款人數</div>
+        <div class="stat-value" id="statCount">0</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">月應收總額</div>
+        <div class="stat-value big" id="statOutstanding">0</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">本月待收</div>
+        <div class="stat-value" id="statMonth">0</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="toolbar">
+  <button class="btn" onclick="enableNotifications()" id="btnNotify">◆ 啟用通知</button>
+  <button class="btn" onclick="exportAllICS()">◆ 匯出日曆(全部)</button>
+  <button class="btn" onclick="exportData()">◆ 匯出備份</button>
+  <button class="btn" onclick="document.getElementById('importFile').click()">◆ 匯入還原</button>
+  <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+  <button class="btn primary" onclick="openDebtorModal()">+ 新增借款人</button>
+</div>
+
+<div class="container">
+  <!-- Left: Alerts -->
+  <section class="panel">
+    <div class="panel-title">
+      <h2>◆ 還款提醒</h2>
+      <span class="count" id="alertCount">—</span>
+    </div>
+
+    <div class="alert-section">
+      <h3>已逾期</h3>
+      <div id="overdueList"></div>
+    </div>
+
+    <div class="alert-section">
+      <h3>今日到期</h3>
+      <div id="todayList"></div>
+    </div>
+
+    <div class="alert-section">
+      <h3>七日內到期</h3>
+      <div id="soonList"></div>
+    </div>
+
+    <div class="alert-section">
+      <h3>本月後續</h3>
+      <div id="laterList"></div>
+    </div>
+  </section>
+
+  <!-- Right: All debtors -->
+  <section class="panel">
+    <div class="panel-title">
+      <h2>◆ 借款人總覽</h2>
+      <span class="count" id="debtorCount">0</span>
+    </div>
+    <div class="debtor-list" id="debtorList"></div>
+  </section>
+</div>
+
+<!-- Add/Edit Debtor Modal -->
+<div class="modal-backdrop" id="debtorModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="debtorModalTitle">新增借款人</div>
+      <button class="modal-close" onclick="closeDebtorModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>姓名</label>
+        <input type="text" id="fName" placeholder="借款人姓名">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>每月還款日</label>
+          <select id="fDay">
+            <script>for(let i=1;i<=31;i++)document.write(`<option value="${i}">${i} 日</option>`)</script>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>每月應還金額</label>
+          <input type="number" id="fAmount" placeholder="0" step="1">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>本金部分</label>
+          <input type="number" id="fPrincipal" placeholder="0" step="1">
+        </div>
+        <div class="form-group">
+          <label>利息部分</label>
+          <input type="number" id="fInterest" placeholder="0" step="1">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>聯絡電話</label>
+        <input type="text" id="fPhone" placeholder="電話號碼">
+      </div>
+      <div class="form-group">
+        <label>備註</label>
+        <textarea id="fNotes" placeholder="LINE ID、地址、或任何需要記錄的事"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn danger" id="btnDeleteDebtor" onclick="deleteDebtor()" style="display:none">◆ 刪除</button>
+      <button class="btn" onclick="closeDebtorModal()">取消</button>
+      <button class="btn primary" onclick="saveDebtor()">◆ 儲存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Record Payment Modal -->
+<div class="modal-backdrop" id="paymentModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">登記還款</div>
+      <button class="modal-close" onclick="closePaymentModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>借款人</label>
+        <input type="text" id="pName" readonly>
+      </div>
+      <div class="form-group">
+        <label>還款日期</label>
+        <input type="date" id="pDate">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>本金</label>
+          <input type="number" id="pPrincipal" placeholder="0" step="1">
+        </div>
+        <div class="form-group">
+          <label>利息</label>
+          <input type="number" id="pInterest" placeholder="0" step="1">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>備註</label>
+        <input type="text" id="pNote" placeholder="收款方式、幣別或任何事項">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closePaymentModal()">取消</button>
+      <button class="btn primary" onclick="savePayment()">◆ 確認登記</button>
+    </div>
+  </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal-backdrop" id="detailModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">借款人詳情</div>
+      <button class="modal-close" onclick="closeDetailModal()">✕</button>
+    </div>
+    <div class="detail-header" id="detailHeader"></div>
+    <div class="history-section">
+      <h4>◆ 還款歷史記錄</h4>
+      <div id="historyList"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="editDebtorFromDetail()">◆ 編輯資料</button>
+      <button class="btn primary" onclick="recordFromDetail()">◆ 登記還款</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============ State ============
+const KEY = 'loanLedgerV1';
+let state = loadState();
+let editingId = null;
+let paymentTargetId = null;
+let viewingId = null;
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) {
+      const s = JSON.parse(raw);
+      // 若 debtors 為空且從未 seed 過，做首次預填
+      if ((!s.debtors || s.debtors.length === 0) && !s.seeded) {
+        s.debtors = getInitialDebtors();
+        s.seeded = true;
+        localStorage.setItem(KEY, JSON.stringify(s));
+      }
+      return s;
+    }
+  } catch(e) {}
+  // 完全首次開啟：預填 4 筆借款人資料
+  return { debtors: getInitialDebtors(), seeded: true };
+}
+function saveState() {
+  localStorage.setItem(KEY, JSON.stringify(state));
+}
+
+// 首次開啟時預填的借款人資料（來自 Excel 截圖）
+function getInitialDebtors() {
+  // 產生某月某日的 payment
+  const mk = (pid, y, m, d, principal, interest, note) => ({
+    id: pid,
+    date: `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`,
+    principal: principal || 0,
+    interest: interest || 0,
+    note: note || '',
+  });
+
+  return [
+    {
+      id: 'd_seed_wang',
+      name: '台中王浩哲',
+      day: 5,
+      amount: 60000,
+      principal: 0,
+      interest: 60000,
+      phone: '',
+      notes: '本金 3,000,000 元 · 月利率 2% · 每月利息 60,000',
+      createdAt: new Date().toISOString(),
+      payments: [
+        mk('p_wang_1', 2025, 12, 5, 0, 60000, '付息1 (114/12)'),
+        mk('p_wang_2', 2026, 1, 5, 0, 60000, '付息2 (115/1)'),
+        mk('p_wang_3', 2026, 2, 5, 0, 60000, '付息3 (115/2)'),
+        mk('p_wang_4', 2026, 3, 5, 0, 60000, '付息4 (115/3)'),
+        mk('p_wang_5', 2026, 4, 5, 0, 60000, '付息5 (115/4)'),
+      ],
+    },
+    {
+      id: 'd_seed_zhou',
+      name: '板橋周先生',
+      day: 23,
+      amount: 60000,
+      principal: 0,
+      interest: 60000,
+      phone: '',
+      notes: '本金 3,000,000 元 · 月利率 2% · 每月利息 60,000',
+      createdAt: new Date().toISOString(),
+      payments: [
+        mk('p_zhou_1', 2025, 12, 23, 0, 60000, '付息1 (114/12)'),
+        mk('p_zhou_2', 2026, 1, 23, 0, 60000, '付息2 (115/1)'),
+        mk('p_zhou_3', 2026, 2, 23, 0, 60000, '付息3 (115/2)'),
+        mk('p_zhou_4', 2026, 3, 23, 0, 60000, '付息4 (115/3)'),
+      ],
+    },
+    {
+      id: 'd_seed_wugu_long',
+      name: '五股(長期)',
+      day: 24,
+      amount: 70000,
+      principal: 0,
+      interest: 70000,
+      phone: '',
+      notes: '本金 3,500,000 元 · 月利率 2% · 每月利息 70,000',
+      createdAt: new Date().toISOString(),
+      payments: [
+        mk('p_wugu_l_1', 2026, 2, 24, 0, 70000, '付息1 (115/2)'),
+        mk('p_wugu_l_2', 2026, 3, 24, 0, 70000, '付息2 (115/3)'),
+      ],
+    },
+    {
+      id: 'd_seed_wugu_short',
+      name: '五股(短期)',
+      day: 24,
+      amount: 40000,
+      principal: 0,
+      interest: 40000,
+      phone: '',
+      notes: '本金 2,000,000 元 · 月利率 2% · 每月利息 40,000 · 註：Excel 標示 22 日，以月付款日 24 日為準',
+      createdAt: new Date().toISOString(),
+      payments: [
+        mk('p_wugu_s_1', 2026, 4, 24, 0, 40000, '付息1 (115/4)'),
+        mk('p_wugu_s_2', 2026, 5, 24, 0, 40000, '付息2 (115/5)'),
+      ],
+    },
+  ];
+}
+
+// ============ Debtor CRUD ============
+function openDebtorModal(id = null) {
+  editingId = id;
+  const modal = document.getElementById('debtorModal');
+  const title = document.getElementById('debtorModalTitle');
+  const delBtn = document.getElementById('btnDeleteDebtor');
+  if (id) {
+    const d = state.debtors.find(x => x.id === id);
+    title.textContent = '編輯借款人';
+    document.getElementById('fName').value = d.name || '';
+    document.getElementById('fDay').value = d.day || 1;
+    document.getElementById('fAmount').value = d.amount || '';
+    document.getElementById('fPrincipal').value = d.principal || '';
+    document.getElementById('fInterest').value = d.interest || '';
+    document.getElementById('fPhone').value = d.phone || '';
+    document.getElementById('fNotes').value = d.notes || '';
+    delBtn.style.display = 'inline-block';
+  } else {
+    title.textContent = '新增借款人';
+    ['fName','fAmount','fPrincipal','fInterest','fPhone','fNotes'].forEach(x => document.getElementById(x).value = '');
+    document.getElementById('fDay').value = 1;
+    delBtn.style.display = 'none';
+  }
+  modal.classList.add('active');
+}
+function closeDebtorModal() {
+  document.getElementById('debtorModal').classList.remove('active');
+  editingId = null;
+}
+function saveDebtor() {
+  const name = document.getElementById('fName').value.trim();
+  if (!name) { alert('請輸入姓名'); return; }
+  const data = {
+    name,
+    day: parseInt(document.getElementById('fDay').value),
+    amount: parseFloat(document.getElementById('fAmount').value) || 0,
+    principal: parseFloat(document.getElementById('fPrincipal').value) || 0,
+    interest: parseFloat(document.getElementById('fInterest').value) || 0,
+    phone: document.getElementById('fPhone').value.trim(),
+    notes: document.getElementById('fNotes').value.trim(),
+  };
+  let isNew = false;
+  let debtor;
+  if (editingId) {
+    debtor = state.debtors.find(x => x.id === editingId);
+    Object.assign(debtor, data);
+  } else {
+    isNew = true;
+    debtor = {
+      id: 'd_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
+      ...data,
+      createdAt: new Date().toISOString(),
+      payments: [],
+    };
+    state.debtors.push(debtor);
+  }
+  saveState();
+  closeDebtorModal();
+  render();
+  // 新增時自動下載 .ics 讓使用者匯入 Google Calendar
+  if (isNew && debtor.amount > 0) {
+    setTimeout(() => {
+      if (confirm(`已新增「${debtor.name}」。\n\n要下載 Google 日曆檔案嗎？\n匯入後每月 ${debtor.day} 日早上 9 點會自動提醒你。`)) {
+        downloadICS([debtor], `reminder-${debtor.name}.ics`);
+      }
+    }, 200);
+  }
+}
+function deleteDebtor() {
+  if (!editingId) return;
+  const d = state.debtors.find(x => x.id === editingId);
+  if (!confirm(`確定刪除「${d.name}」及其所有還款記錄？此動作無法復原。`)) return;
+  state.debtors = state.debtors.filter(x => x.id !== editingId);
+  saveState();
+  closeDebtorModal();
+  closeDetailModal();
+  render();
+}
+
+// ============ Payment ============
+function openPaymentModal(id) {
+  paymentTargetId = id;
+  const d = state.debtors.find(x => x.id === id);
+  document.getElementById('pName').value = d.name;
+  document.getElementById('pDate').value = todayISO();
+  document.getElementById('pPrincipal').value = d.principal || '';
+  document.getElementById('pInterest').value = d.interest || '';
+  document.getElementById('pNote').value = '';
+  document.getElementById('paymentModal').classList.add('active');
+}
+function closePaymentModal() {
+  document.getElementById('paymentModal').classList.remove('active');
+  paymentTargetId = null;
+}
+function savePayment() {
+  if (!paymentTargetId) return;
+  const d = state.debtors.find(x => x.id === paymentTargetId);
+  const principal = parseFloat(document.getElementById('pPrincipal').value) || 0;
+  const interest = parseFloat(document.getElementById('pInterest').value) || 0;
+  if (principal + interest === 0) { alert('請輸入還款金額'); return; }
+  d.payments = d.payments || [];
+  d.payments.push({
+    id: 'p_' + Date.now(),
+    date: document.getElementById('pDate').value || todayISO(),
+    principal, interest,
+    note: document.getElementById('pNote').value.trim(),
+  });
+  saveState();
+  closePaymentModal();
+  if (viewingId === d.id) openDetailModal(d.id);
+  render();
+}
+function deletePayment(debtorId, paymentId) {
+  if (!confirm('刪除此還款記錄？')) return;
+  const d = state.debtors.find(x => x.id === debtorId);
+  d.payments = (d.payments || []).filter(p => p.id !== paymentId);
+  saveState();
+  openDetailModal(debtorId);
+  render();
+}
+
+// ============ Detail ============
+function openDetailModal(id) {
+  viewingId = id;
+  const d = state.debtors.find(x => x.id === id);
+  if (!d) return;
+  const payments = (d.payments || []).slice().sort((a,b) => b.date.localeCompare(a.date));
+  const totalPaid = (d.payments || []).reduce((s,p) => s + (p.principal||0) + (p.interest||0), 0);
+  const totalPrincipalPaid = (d.payments || []).reduce((s,p) => s + (p.principal||0), 0);
+  const totalInterestPaid = (d.payments || []).reduce((s,p) => s + (p.interest||0), 0);
+  const nextDue = nextDueDate(d.day);
+  const daysUntil = daysDiff(nextDue);
+
+  document.getElementById('detailHeader').innerHTML = `
+    <div class="detail-name">${esc(d.name)}</div>
+    <div style="color:var(--text-secondary);font-size:14px;font-family:'JetBrains Mono',monospace;">
+      每月 ${d.day} 日還款 · 應還 ${fmt(d.amount)}/月
+    </div>
+    <div class="detail-meta-grid">
+      <div class="detail-meta-item">
+        <div class="lbl">下次到期</div>
+        <div class="val">${nextDue.toLocaleDateString('zh-TW')} (${daysLabel(daysUntil)})</div>
+      </div>
+      <div class="detail-meta-item">
+        <div class="lbl">累計已還</div>
+        <div class="val">${fmt(totalPaid)}</div>
+      </div>
+      <div class="detail-meta-item">
+        <div class="lbl">累計本金</div>
+        <div class="val" style="color:var(--green)">${fmt(totalPrincipalPaid)}</div>
+      </div>
+      <div class="detail-meta-item">
+        <div class="lbl">累計利息</div>
+        <div class="val" style="color:var(--gold)">${fmt(totalInterestPaid)}</div>
+      </div>
+      ${d.phone ? `<div class="detail-meta-item" style="grid-column:1/-1"><div class="lbl">聯絡電話</div><div class="val">${esc(d.phone)}</div></div>`:''}
+      ${d.notes ? `<div class="detail-meta-item" style="grid-column:1/-1"><div class="lbl">備註</div><div class="val" style="white-space:pre-wrap;font-family:'Noto Serif TC',serif">${esc(d.notes)}</div></div>`:''}
+    </div>
+  `;
+
+  const list = document.getElementById('historyList');
+  if (payments.length === 0) {
+    list.innerHTML = '<div class="alert-empty">尚無還款記錄</div>';
+  } else {
+    list.innerHTML = payments.map(p => `
+      <div class="history-item">
+        <div class="date">${p.date}</div>
+        <div class="split">本 ${fmt(p.principal)} · 息 ${fmt(p.interest)} ${p.note?'· '+esc(p.note):''}</div>
+        <div class="total">${fmt((p.principal||0)+(p.interest||0))}</div>
+        <button class="del" onclick="deletePayment('${d.id}','${p.id}')" title="刪除">✕</button>
+      </div>
+    `).join('');
+  }
+  document.getElementById('detailModal').classList.add('active');
+}
+function closeDetailModal() {
+  document.getElementById('detailModal').classList.remove('active');
+  viewingId = null;
+}
+function editDebtorFromDetail() {
+  const id = viewingId;
+  closeDetailModal();
+  openDebtorModal(id);
+}
+function recordFromDetail() {
+  const id = viewingId;
+  closeDetailModal();
+  openPaymentModal(id);
+}
+
+// ============ Date helpers ============
+function todayISO() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function nextDueDate(day) {
+  // Returns the nearest upcoming due date (today inclusive).
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const thisMonth = new Date(today.getFullYear(), today.getMonth(), Math.min(day, daysInMonth(today.getFullYear(), today.getMonth())));
+  if (thisMonth >= today) return thisMonth;
+  const nm = today.getMonth() + 1;
+  const ny = nm > 11 ? today.getFullYear() + 1 : today.getFullYear();
+  const nmm = nm > 11 ? 0 : nm;
+  return new Date(ny, nmm, Math.min(day, daysInMonth(ny, nmm)));
+}
+function lastDueDate(day) {
+  // Most recent due date on or before today.
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const thisMonth = new Date(today.getFullYear(), today.getMonth(), Math.min(day, daysInMonth(today.getFullYear(), today.getMonth())));
+  if (thisMonth <= today) return thisMonth;
+  const pm = today.getMonth() - 1;
+  const py = pm < 0 ? today.getFullYear() - 1 : today.getFullYear();
+  const pmm = pm < 0 ? 11 : pm;
+  return new Date(py, pmm, Math.min(day, daysInMonth(py, pmm)));
+}
+function daysInMonth(y, m) { return new Date(y, m+1, 0).getDate(); }
+function daysDiff(targetDate) {
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const t = new Date(targetDate);
+  t.setHours(0,0,0,0);
+  return Math.round((t - today) / 86400000);
+}
+function daysLabel(n) {
+  if (n === 0) return '今日';
+  if (n > 0) return `還有 ${n} 天`;
+  return `逾期 ${Math.abs(n)} 天`;
+}
+
+// Is this month's due date already paid?
+function isPaidThisCycle(d) {
+  const last = lastDueDate(d.day);
+  return (d.payments || []).some(p => {
+    const pd = new Date(p.date);
+    pd.setHours(0,0,0,0);
+    return pd >= last;
+  });
+}
+
+// ============ Formatting ============
+function fmt(n) {
+  n = n || 0;
+  return n.toLocaleString('zh-TW', { maximumFractionDigits: 0 });
+}
+function esc(s) {
+  return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+}
+
+// ============ Rendering ============
+function render() {
+  const debtors = state.debtors.slice();
+
+  // Classify for alert panels (only show unpaid-this-cycle)
+  const overdue = [], today = [], soon = [], later = [];
+  const now = new Date(); now.setHours(0,0,0,0);
+  const endOfMonth = new Date(now.getFullYear(), now.getMonth()+1, 0);
+
+  for (const d of debtors) {
+    const paid = isPaidThisCycle(d);
+    const nextDue = nextDueDate(d.day);
+    const diff = daysDiff(nextDue);
+    // If paid this cycle, still show upcoming (next month) only if within 7 days
+    if (paid) {
+      if (diff >= 0 && diff <= 7 && nextDue.getMonth() !== now.getMonth()) {
+        soon.push({ d, diff, nextDue, paid: true });
+      }
+      continue;
+    }
+    // Not paid this cycle: compute days since last due to determine overdue
+    const last = lastDueDate(d.day);
+    if (last < now) {
+      overdue.push({ d, diff: daysDiff(last), nextDue: last, paid: false });
+    } else if (diff === 0) {
+      today.push({ d, diff: 0, nextDue, paid: false });
+    } else if (diff <= 7) {
+      soon.push({ d, diff, nextDue, paid: false });
+    } else if (nextDue <= endOfMonth) {
+      later.push({ d, diff, nextDue, paid: false });
+    } else {
+      later.push({ d, diff, nextDue, paid: false });
+    }
+  }
+
+  overdue.sort((a,b) => a.diff - b.diff); // most overdue first
+  soon.sort((a,b) => a.diff - b.diff);
+  later.sort((a,b) => a.diff - b.diff);
+
+  document.getElementById('overdueList').innerHTML = overdue.length ? overdue.map(x => renderCard(x, 'overdue')).join('') : '<div class="alert-empty">無逾期</div>';
+  document.getElementById('todayList').innerHTML = today.length ? today.map(x => renderCard(x, 'today')).join('') : '<div class="alert-empty">今日無到期</div>';
+  document.getElementById('soonList').innerHTML = soon.length ? soon.map(x => renderCard(x, 'soon')).join('') : '<div class="alert-empty">七日內無到期</div>';
+  document.getElementById('laterList').innerHTML = later.length ? later.map(x => renderCard(x, 'later')).join('') : '<div class="alert-empty">本月後續無到期</div>';
+
+  // All debtors list
+  const list = document.getElementById('debtorList');
+  if (debtors.length === 0) {
+    list.innerHTML = `
+      <div class="empty-state">
+        <div class="big">♦</div>
+        <p>尚無借款人<br>點擊右上「+ 新增借款人」開始</p>
+      </div>`;
+  } else {
+    list.innerHTML = debtors
+      .slice()
+      .sort((a,b) => a.day - b.day)
+      .map(d => {
+        const totalPaid = (d.payments || []).reduce((s,p) => s + (p.principal||0) + (p.interest||0), 0);
+        const nd = nextDueDate(d.day);
+        const diff = daysDiff(nd);
+        return `
+          <div class="ledger-row" onclick="openDetailModal('${d.id}')">
+            <div>
+              <div class="ledger-name"><span class="dot"></span>${esc(d.name)}</div>
+              <div class="ledger-info">每月 ${d.day} 日 · ${daysLabel(diff)} · ${(d.payments||[]).length} 筆記錄</div>
+            </div>
+            <div class="ledger-amount">
+              <div class="outstanding">${fmt(d.amount)} 元/月</div>
+              <div class="paid">已還 ${fmt(totalPaid)}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+  }
+
+  // Stats
+  const totalOutstanding = debtors.reduce((s,d) => s + (d.amount||0), 0);
+  document.getElementById('statCount').textContent = debtors.length;
+  document.getElementById('statOutstanding').textContent = fmt(totalOutstanding);
+  document.getElementById('statMonth').textContent = fmt(totalOutstanding);
+  document.getElementById('debtorCount').textContent = debtors.length;
+  const alertTotal = overdue.length + today.length + soon.length;
+  document.getElementById('alertCount').textContent = alertTotal ? `${alertTotal} 項待處理` : '—';
+}
+
+function renderCard(x, cls) {
+  const d = x.d;
+  return `
+    <div class="debtor-card ${cls}" onclick="openDetailModal('${d.id}')">
+      <div class="day-badge">
+        ${d.day}
+        <span class="label">日</span>
+      </div>
+      <div>
+        <div class="debtor-name">${esc(d.name)}</div>
+        <div class="debtor-meta">${daysLabel(x.diff)}${d.phone ? ' · '+esc(d.phone) : ''}</div>
+      </div>
+      <div class="debtor-amount">
+        ${fmt(d.amount)}<span class="unit" style="margin-left:4px;margin-right:0">元</span>
+      </div>
+      <button class="btn-record" onclick="event.stopPropagation(); openPaymentModal('${d.id}')">登記</button>
+    </div>
+  `;
+}
+
+// ============ iCalendar (.ics) 匯出 ============
+// 產生一個給 Google Calendar 匯入的檔案，事件為每月第 N 日早上 9 點，
+// 內建 VALARM 提前 0 分鐘提醒（= 9:00 當下跳通知）。
+function pad(n) { return String(n).padStart(2, '0'); }
+function icsDate(d) {
+  // YYYYMMDDTHHMMSS (local time, UTC+8 via TZID)
+  return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`;
+}
+function buildICS(debtors) {
+  const lines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Loan Ledger//TW//ZH',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    // Taipei 時區定義
+    'BEGIN:VTIMEZONE',
+    'TZID:Asia/Taipei',
+    'BEGIN:STANDARD',
+    'DTSTART:19700101T000000',
+    'TZOFFSETFROM:+0800',
+    'TZOFFSETTO:+0800',
+    'TZNAME:CST',
+    'END:STANDARD',
+    'END:VTIMEZONE',
+  ];
+
+  // 從今天起最近的第 N 日當作起始
+  const now = new Date();
+  const stamp = icsDate(now).replace(/[-:]/g, '') + 'Z';
+
+  for (const d of debtors) {
+    if (!d.amount) continue;
+    const start = nextDueDate(d.day);
+    start.setHours(9, 0, 0, 0);
+    const end = new Date(start.getTime() + 30 * 60 * 1000); // 30 分鐘事件
+    const uid = `${d.id}@loan-ledger`;
+    const summary = `還款日 · ${d.name} · ${fmt(d.amount)} 元`;
+    const desc = [
+      `每月 ${d.day} 日應收 ${fmt(d.amount)} 元`,
+      d.principal ? `本金 ${fmt(d.principal)}` : '',
+      d.interest ? `利息 ${fmt(d.interest)}` : '',
+      d.phone ? `電話：${d.phone}` : '',
+      d.notes ? `備註：${d.notes}` : '',
+    ].filter(Boolean).join('\\n');
+
+    lines.push(
+      'BEGIN:VEVENT',
+      `UID:${uid}`,
+      `DTSTAMP:${stamp}`,
+      `DTSTART;TZID=Asia/Taipei:${icsDate(start)}`,
+      `DTEND;TZID=Asia/Taipei:${icsDate(end)}`,
+      `SUMMARY:${escapeICS(summary)}`,
+      `DESCRIPTION:${escapeICS(desc)}`,
+      // 每月循環
+      `RRULE:FREQ=MONTHLY;BYMONTHDAY=${d.day}`,
+      // 提醒：事件開始當下(= 9:00)彈通知
+      'BEGIN:VALARM',
+      'ACTION:DISPLAY',
+      `DESCRIPTION:${escapeICS(summary)}`,
+      'TRIGGER:PT0M',
+      'END:VALARM',
+      'END:VEVENT'
+    );
+  }
+  lines.push('END:VCALENDAR');
+  return lines.join('\r\n');
+}
+function escapeICS(s) {
+  return (s||'').replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\n/g,'\\n');
+}
+function downloadICS(debtors, filename) {
+  const content = buildICS(debtors);
+  const blob = new Blob([content], { type: 'text/calendar;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename || `loan-reminders-${todayISO()}.ics`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+function exportAllICS() {
+  if (state.debtors.length === 0) { alert('尚無借款人可匯出'); return; }
+  downloadICS(state.debtors, `loan-reminders-all-${todayISO()}.ics`);
+  setTimeout(() => {
+    alert('已下載日曆檔。\n\n使用步驟：\n1. 開啟 Google 日曆網頁版\n2. 右上齒輪 → 設定 → 匯入及匯出\n3. 選擇剛剛下載的 .ics 檔\n4. 之後手機、手錶都會自動提醒');
+  }, 300);
+}
+
+// ============ 瀏覽器通知 ============
+const NOTIFY_KEY = 'loanLedgerNotifiedDates';
+function getNotified() {
+  try { return JSON.parse(localStorage.getItem(NOTIFY_KEY) || '{}'); } catch { return {}; }
+}
+function setNotified(obj) { localStorage.setItem(NOTIFY_KEY, JSON.stringify(obj)); }
+
+async function enableNotifications() {
+  if (!('Notification' in window)) {
+    alert('此瀏覽器不支援通知功能');
+    return;
+  }
+  if (Notification.permission === 'granted') {
+    alert('通知已啟用 ✓\n\n注意：此網頁需保持開啟(可釘選分頁)，到期當日早上 9 點會彈出系統通知。\n\n若要關著網頁也能提醒，請使用「匯出日曆」功能匯入 Google Calendar。');
+    updateNotifyButton();
+    return;
+  }
+  if (Notification.permission === 'denied') {
+    alert('通知已被封鎖。請到瀏覽器網址列左側的鎖頭圖示，手動允許通知權限。');
+    return;
+  }
+  const result = await Notification.requestPermission();
+  if (result === 'granted') {
+    new Notification('借貸帳簿', { body: '通知已啟用 ✓ 到期日早上 9 點會提醒你' });
+    updateNotifyButton();
+    checkAndNotify(); // 立刻檢查一次
+  }
+}
+function updateNotifyButton() {
+  const btn = document.getElementById('btnNotify');
+  if (!btn) return;
+  if (!('Notification' in window)) { btn.style.display = 'none'; return; }
+  if (Notification.permission === 'granted') {
+    btn.textContent = '◆ 通知已啟用';
+    btn.style.borderColor = 'var(--green)';
+    btn.style.color = 'var(--green)';
+  }
+}
+function checkAndNotify() {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  const now = new Date();
+  // 只在 9:00–9:59 這個小時內提醒（避開重複）
+  if (now.getHours() !== 9) return;
+  const todayKey = todayISO();
+  const notified = getNotified();
+  // 清掉 30 天前的記錄
+  const cutoff = new Date(now.getTime() - 30*86400000);
+  for (const k of Object.keys(notified)) {
+    if (new Date(k) < cutoff) delete notified[k];
+  }
+
+  for (const d of state.debtors) {
+    const last = lastDueDate(d.day);
+    const lastKey = `${last.getFullYear()}-${pad(last.getMonth()+1)}-${pad(last.getDate())}`;
+    if (lastKey !== todayKey) continue; // 今天不是到期日
+    if (isPaidThisCycle(d)) continue;    // 已還本期
+    const notifyId = `${d.id}_${todayKey}`;
+    if (notified[notifyId]) continue;    // 今天已提醒過
+    new Notification(`還款提醒 · ${d.name}`, {
+      body: `今天是每月 ${d.day} 日還款日，應收 ${fmt(d.amount)} 元${d.phone ? '\n電話：' + d.phone : ''}`,
+      tag: notifyId,
+      requireInteraction: true,
+    });
+    notified[notifyId] = true;
+  }
+  setNotified(notified);
+}
+
+// 每 30 分鐘檢查一次（只在開著網頁時運作）
+setInterval(checkAndNotify, 30 * 60 * 1000);
+// 網頁剛載入、從背景切回來時也檢查
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) checkAndNotify();
+});
+
+// ============ PWA：註冊 Service Worker（讓可以加入主畫面） ============
+if ('serviceWorker' in navigator) {
+  // 用 Blob 內嵌 SW 避免需要額外檔案
+  const swCode = `
+    self.addEventListener('install', e => self.skipWaiting());
+    self.addEventListener('activate', e => self.clients.claim());
+    self.addEventListener('fetch', e => {
+      // 純離線快取：拿到就用，失敗就走網路
+      e.respondWith(fetch(e.request).catch(() => new Response('offline')));
+    });
+  `;
+  try {
+    const blob = new Blob([swCode], { type: 'text/javascript' });
+    const url = URL.createObjectURL(blob);
+    navigator.serviceWorker.register(url).catch(() => {});
+  } catch {}
+}
+
+
+function exportData() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `loan-ledger-${todayISO()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data.debtors || !Array.isArray(data.debtors)) throw new Error('格式錯誤');
+      if (!confirm(`確定匯入 ${data.debtors.length} 位借款人的資料？這會覆蓋目前所有記錄。`)) return;
+      state = data;
+      saveState();
+      render();
+      alert('匯入成功');
+    } catch(err) {
+      alert('匯入失敗：' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+// Close modals on backdrop click
+document.querySelectorAll('.modal-backdrop').forEach(bg => {
+  bg.addEventListener('click', (e) => {
+    if (e.target === bg) bg.classList.remove('active');
+  });
+});
+// ESC to close modals
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-backdrop.active').forEach(m => m.classList.remove('active'));
+  }
+});
+
+render();
+updateNotifyButton();
+checkAndNotify();
+</script>
+</body>
+</html>
