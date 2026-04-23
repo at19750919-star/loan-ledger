@@ -45,6 +45,17 @@ function getOrCreateSheet_(name, cols, headers) {
   return sh;
 }
 
+function getNs_(e) {
+  const ns = (e && e.parameter && e.parameter.ns) ? String(e.parameter.ns).trim() : '';
+  if (!ns) return '';
+  if (!/^[a-zA-Z0-9_]+$/.test(ns)) return ''; // 只允許英數底線
+  return ns;
+}
+
+function sheetName_(base, ns) {
+  return ns ? base + '_' + ns : base;
+}
+
 function ensureExtraSheets_() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   for (const name of EXTRA_SHEETS) {
@@ -101,9 +112,10 @@ function strOrEmpty_(v) {
 
 function doGet(e) {
   try {
-    const debtorsSh = getOrCreateSheet_(DEBTORS_SHEET, DEBTOR_COLS, DEBTOR_HEADERS);
-    const paymentsSh = getOrCreateSheet_(PAYMENTS_SHEET, PAYMENT_COLS, PAYMENT_HEADERS);
-    const metaSh = getOrCreateSheet_(META_SHEET, META_COLS, META_HEADERS);
+    const ns = getNs_(e);
+    const debtorsSh = getOrCreateSheet_(sheetName_(DEBTORS_SHEET, ns), DEBTOR_COLS, DEBTOR_HEADERS);
+    const paymentsSh = getOrCreateSheet_(sheetName_(PAYMENTS_SHEET, ns), PAYMENT_COLS, PAYMENT_HEADERS);
+    const metaSh = getOrCreateSheet_(sheetName_(META_SHEET, ns), META_COLS, META_HEADERS);
     ensureExtraSheets_();
 
     const debtorRows = readSheet_(debtorsSh, DEBTOR_COLS);
@@ -168,9 +180,10 @@ function doPost(e) {
     if (!state || typeof state !== 'object') return jsonOut_({ ok: false, error: 'invalid json' });
     const debtors = Array.isArray(state.debtors) ? state.debtors : [];
 
-    const debtorsSh = getOrCreateSheet_(DEBTORS_SHEET, DEBTOR_COLS, DEBTOR_HEADERS);
-    const paymentsSh = getOrCreateSheet_(PAYMENTS_SHEET, PAYMENT_COLS, PAYMENT_HEADERS);
-    const metaSh = getOrCreateSheet_(META_SHEET, META_COLS, META_HEADERS);
+    const ns = getNs_(e);
+    const debtorsSh = getOrCreateSheet_(sheetName_(DEBTORS_SHEET, ns), DEBTOR_COLS, DEBTOR_HEADERS);
+    const paymentsSh = getOrCreateSheet_(sheetName_(PAYMENTS_SHEET, ns), PAYMENT_COLS, PAYMENT_HEADERS);
+    const metaSh = getOrCreateSheet_(sheetName_(META_SHEET, ns), META_COLS, META_HEADERS);
     ensureExtraSheets_();
 
     // Debtors

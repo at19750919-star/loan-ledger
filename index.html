@@ -689,8 +689,8 @@ body {
   <span class="header-corner br"></span>
   <div class="header-inner">
     <div class="brand">
-      <h1>借貸 <span class="brand-ornament">✦</span> 帳簿</h1>
-      <div class="sub">借 · 貸 · 管 · 理</div>
+      <h1 id="brandTitle">借貸 <span class="brand-ornament">✦</span> 帳簿</h1>
+      <div class="sub" id="brandSub">借 · 貸 · 管 · 理</div>
     </div>
     <div class="header-stats">
       <div class="stat">
@@ -868,9 +868,18 @@ body {
 </div>
 
 <script>
+// ============ Namespace（?ns=shareholder 等切換獨立帳本） ============
+const NS = (new URLSearchParams(location.search).get('ns') || '').replace(/[^a-zA-Z0-9_]/g, '');
+const SUFFIX = NS ? '_' + NS : '';
+if (NS === 'shareholder') {
+  document.title = '股東帳簿';
+  document.getElementById('brandTitle').innerHTML = '股東 <span class="brand-ornament">✦</span> 帳簿';
+  document.getElementById('brandSub').textContent = '股 · 東 · 帳 · 本';
+}
+
 // ============ State ============
-const KEY = 'loanLedgerV1';
-const CLOUD_URL_KEY = 'loanLedgerCloudUrl';
+const KEY = 'loanLedgerV1' + SUFFIX;
+const CLOUD_URL_KEY = 'loanLedgerCloudUrl' + SUFFIX;
 let state = loadState();
 let editingId = null;
 let paymentTargetId = null;
@@ -880,6 +889,10 @@ let cloudSaveTimer = null;
 // ============ 雲端同步（Google Apps Script Web App） ============
 function getCloudUrl() {
   return (localStorage.getItem(CLOUD_URL_KEY) || '').trim();
+}
+function withNs(url) {
+  if (!NS) return url;
+  return url + (url.includes('?') ? '&' : '?') + 'ns=' + encodeURIComponent(NS);
 }
 function setCloudStatus(msg, type) {
   const el = document.getElementById('cloudStatus');
@@ -916,7 +929,7 @@ async function cloudLoad(replaceLocal) {
   if (!url) return;
   try {
     setCloudStatus('雲端讀取中…', 'pending');
-    const res = await fetch(url, { method: 'GET' });
+    const res = await fetch(withNs(url), { method: 'GET' });
     const json = await res.json();
     if (!json.ok) throw new Error(json.error || 'load failed');
     const cloudData = json.data;
@@ -947,7 +960,7 @@ async function cloudSaveNow() {
   const url = getCloudUrl();
   if (!url) return;
   try {
-    const res = await fetch(url, {
+    const res = await fetch(withNs(url), {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify(state)
@@ -984,6 +997,8 @@ function saveState() {
 
 // 首次開啟時預填的借款人資料（來自 Excel 截圖）
 function getInitialDebtors() {
+  // 股東或其他命名空間一律不 seed（各自獨立從空白開始）
+  if (NS) return [];
   // 產生某月某日的 payment
   const mk = (pid, y, m, d, principal, interest, note) => ({
     id: pid,
@@ -1507,7 +1522,7 @@ function exportAllICS() {
 }
 
 // ============ 瀏覽器通知 ============
-const NOTIFY_KEY = 'loanLedgerNotifiedDates';
+const NOTIFY_KEY = 'loanLedgerNotifiedDates' + SUFFIX;
 function getNotified() {
   try { return JSON.parse(localStorage.getItem(NOTIFY_KEY) || '{}'); } catch { return {}; }
 }
