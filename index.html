@@ -643,6 +643,20 @@ body {
   .stat-value { font-size: 18px; }
   .stat-value.big { font-size: 22px; }
   .brand h1 { font-size: 22px; }
+  .toolbar {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    justify-content: stretch;
+  }
+  .toolbar .btn {
+    padding: 10px 6px;
+    font-size: 14px;
+    letter-spacing: 0.08em;
+    text-align: center;
+    white-space: nowrap;
+  }
+  .toolbar .btn.primary { grid-column: span 2; }
   .debtor-card {
     grid-template-columns: auto 1fr;
     grid-template-rows: auto auto;
