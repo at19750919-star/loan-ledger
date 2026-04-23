@@ -20,9 +20,13 @@ const PAYMENTS_SHEET = 'Payments';
 const META_SHEET = 'Meta';
 
 const DEBTOR_COLS = ['id', 'name', 'day', 'amount', 'principal', 'interest', 'phone', 'notes', 'createdAt'];
+const DEBTOR_HEADERS = ['編號', '姓名', '月付款日', '月應收金額', '本金', '利息', '電話', '備註', '建立時間'];
 const PAYMENT_COLS = ['debtor_id', 'id', 'date', 'principal', 'interest', 'note'];
+const PAYMENT_HEADERS = ['借款人編號', '付款編號', '日期', '本金', '利息', '備註'];
+const META_COLS = ['key', 'value'];
+const META_HEADERS = ['項目', '值'];
 
-function getOrCreateSheet_(name, headers) {
+function getOrCreateSheet_(name, cols, headers) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   let sh = ss.getSheetByName(name);
   if (!sh) {
@@ -30,6 +34,10 @@ function getOrCreateSheet_(name, headers) {
     sh.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight('bold');
     sh.setFrozenRows(1);
   } else if (sh.getLastRow() === 0) {
+    sh.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight('bold');
+    sh.setFrozenRows(1);
+  } else {
+    // 每次都把第一列覆寫成最新中文標頭（避免舊部署留下英文 header）
     sh.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight('bold');
     sh.setFrozenRows(1);
   }
@@ -83,13 +91,13 @@ function strOrEmpty_(v) {
 
 function doGet(e) {
   try {
-    const debtorsSh = getOrCreateSheet_(DEBTORS_SHEET, DEBTOR_COLS);
-    const paymentsSh = getOrCreateSheet_(PAYMENTS_SHEET, PAYMENT_COLS);
-    const metaSh = getOrCreateSheet_(META_SHEET, ['key', 'value']);
+    const debtorsSh = getOrCreateSheet_(DEBTORS_SHEET, DEBTOR_COLS, DEBTOR_HEADERS);
+    const paymentsSh = getOrCreateSheet_(PAYMENTS_SHEET, PAYMENT_COLS, PAYMENT_HEADERS);
+    const metaSh = getOrCreateSheet_(META_SHEET, META_COLS, META_HEADERS);
 
     const debtorRows = readSheet_(debtorsSh, DEBTOR_COLS);
     const paymentRows = readSheet_(paymentsSh, PAYMENT_COLS);
-    const metaRows = readSheet_(metaSh, ['key', 'value']);
+    const metaRows = readSheet_(metaSh, META_COLS);
 
     // 沒有任何借款人時，回傳 data:null 讓前端判斷「雲端為空」
     if (!debtorRows.length) {
@@ -149,9 +157,9 @@ function doPost(e) {
     if (!state || typeof state !== 'object') return jsonOut_({ ok: false, error: 'invalid json' });
     const debtors = Array.isArray(state.debtors) ? state.debtors : [];
 
-    const debtorsSh = getOrCreateSheet_(DEBTORS_SHEET, DEBTOR_COLS);
-    const paymentsSh = getOrCreateSheet_(PAYMENTS_SHEET, PAYMENT_COLS);
-    const metaSh = getOrCreateSheet_(META_SHEET, ['key', 'value']);
+    const debtorsSh = getOrCreateSheet_(DEBTORS_SHEET, DEBTOR_COLS, DEBTOR_HEADERS);
+    const paymentsSh = getOrCreateSheet_(PAYMENTS_SHEET, PAYMENT_COLS, PAYMENT_HEADERS);
+    const metaSh = getOrCreateSheet_(META_SHEET, META_COLS, META_HEADERS);
 
     // Debtors
     const debtorRows = debtors.map(d => ({
@@ -194,7 +202,7 @@ function doPost(e) {
       if (typeof v === 'object') continue; // 跳過巢狀物件
       metaRows.push({ key: k, value: String(v) });
     }
-    writeSheet_(metaSh, ['key', 'value'], metaRows);
+    writeSheet_(metaSh, META_COLS, metaRows);
 
     return jsonOut_({ ok: true });
   } catch (err) {
