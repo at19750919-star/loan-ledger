@@ -919,15 +919,19 @@ async function cloudLoad(replaceLocal) {
     const res = await fetch(url, { method: 'GET' });
     const json = await res.json();
     if (!json.ok) throw new Error(json.error || 'load failed');
-    if (json.data && json.data.debtors && Array.isArray(json.data.debtors)) {
-      state = json.data;
+    const cloudData = json.data;
+    const cloudHasData = cloudData && Array.isArray(cloudData.debtors) && cloudData.debtors.length > 0;
+    const localHasData = state && Array.isArray(state.debtors) && state.debtors.length > 0;
+    if (cloudHasData) {
+      state = cloudData;
       localStorage.setItem(KEY, JSON.stringify(state));
       render();
       setCloudStatus('已從雲端載入 · ' + new Date().toLocaleTimeString('zh-TW'), 'ok');
-    } else {
-      // 雲端還沒資料，把目前本機資料推上去
+    } else if (localHasData) {
       setCloudStatus('雲端為空，上傳本機資料…', 'pending');
       cloudSaveNow();
+    } else {
+      setCloudStatus('雲端與本機皆為空', '');
     }
   } catch (err) {
     setCloudStatus('雲端讀取失敗：' + err.message, 'err');
