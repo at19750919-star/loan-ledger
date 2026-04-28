@@ -1248,7 +1248,7 @@ function openDetailModal(id) {
   const totalPaid = (d.payments || []).reduce((s,p) => s + (p.principal||0) + (p.interest||0), 0);
   const totalPrincipalPaid = (d.payments || []).reduce((s,p) => s + (p.principal||0), 0);
   const totalInterestPaid = (d.payments || []).reduce((s,p) => s + (p.interest||0), 0);
-  const nextDue = nextDueDate(d.day);
+  const nextDue = nextDueDateForDebtor(d);
   const daysUntil = daysDiff(nextDue);
 
   document.getElementById('detailHeader').innerHTML = `
@@ -1323,6 +1323,41 @@ function nextDueDate(day) {
   const ny = nm > 11 ? today.getFullYear() + 1 : today.getFullYear();
   const nmm = nm > 11 ? 0 : nm;
   return new Date(ny, nmm, Math.min(day, daysInMonth(ny, nmm)));
+}
+
+// 考慮「累計已收 vs 應收」推算真正的下次到期日(處理預收多期)
+function nextDueDateForDebtor(d) {
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  if (!d.amount) return nextDueDate(d.day);
+
+  const totalReceived = (d.payments || []).reduce((s,p) => s + (p.interest||0) + (p.principal||0), 0);
+  // 已收金額相當於幾期
+  const periodsCovered = Math.floor(totalReceived / d.amount);
+
+  // 起始日：以首次借款日為基準；沒有就用第一筆 payment 日；都沒有就用今天
+  let baseDate;
+  if (d.firstPaymentDate) {
+    baseDate = new Date(d.firstPaymentDate + 'T00:00:00');
+  } else if (d.payments && d.payments.length > 0) {
+    const sorted = d.payments.slice().sort((a,b) => String(a.date).localeCompare(String(b.date)));
+    baseDate = new Date(sorted[0].date + 'T00:00:00');
+  } else {
+    return nextDueDate(d.day);
+  }
+  if (isNaN(baseDate.getTime())) return nextDueDate(d.day);
+
+  // 從基準日當月起，第 1 期 = 基準月本身(視同當下繳清)
+  // 第 N 期到期日 = 基準月後第 (N-1) 個月的「還款日」
+  // 已覆蓋 periodsCovered 期 → 下次該收的是第 (periodsCovered + 1) 期
+  // 第 (periodsCovered + 1) 期到期 = 基準月 + periodsCovered 個月的還款日
+  const targetMonth = new Date(baseDate.getFullYear(), baseDate.getMonth() + periodsCovered, 1);
+  const dayInMonth = Math.min(d.day, daysInMonth(targetMonth.getFullYear(), targetMonth.getMonth()));
+  const next = new Date(targetMonth.getFullYear(), targetMonth.getMonth(), dayInMonth);
+
+  // 若推算結果在過去(代表少收了，已逾期)，往前找最近的逾期那筆
+  if (next < today) return next;
+  return next;
 }
 function lastDueDate(day) {
   // Most recent due date on or before today.
@@ -1421,7 +1456,7 @@ function render() {
 
   for (const d of debtors) {
     const paid = isPaidThisCycle(d);
-    const nextDue = nextDueDate(d.day);
+    const nextDue = nextDueDateForDebtor(d);
     const diff = daysDiff(nextDue);
     // If paid this cycle, still show upcoming (next month) only if within 7 days
     if (paid) {
@@ -1430,10 +1465,9 @@ function render() {
       }
       continue;
     }
-    // Not paid this cycle: compute days since last due to determine overdue
-    const last = lastDueDate(d.day);
-    if (last < now) {
-      overdue.push({ d, diff: daysDiff(last), nextDue: last, paid: false });
+    // Not paid this cycle: nextDue 已經是真正該收的那一天(可能在過去=逾期)
+    if (nextDue < now) {
+      overdue.push({ d, diff: diff, nextDue: nextDue, paid: false });
     } else if (diff === 0) {
       today.push({ d, diff: 0, nextDue, paid: false });
     } else if (diff <= 7) {
@@ -1468,7 +1502,7 @@ function render() {
       .sort((a,b) => a.day - b.day)
       .map(d => {
         const totalPaid = (d.payments || []).reduce((s,p) => s + (p.principal||0) + (p.interest||0), 0);
-        const nd = nextDueDate(d.day);
+        const nd = nextDueDateForDebtor(d);
         const diff = daysDiff(nd);
         return `
           <div class="ledger-row" onclick="openDetailModal('${d.id}')">
@@ -1548,7 +1582,7 @@ function buildICS(debtors) {
 
   for (const d of debtors) {
     if (!d.amount) continue;
-    const start = nextDueDate(d.day);
+    const start = nextDueDateForDebtor(d);
     start.setHours(9, 0, 0, 0);
     const end = new Date(start.getTime() + 30 * 60 * 1000); // 30 分鐘事件
     const uid = `${d.id}@loan-ledger`;
