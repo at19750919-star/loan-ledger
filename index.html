@@ -727,8 +727,18 @@ body {
     </div>
     <div class="modal-body">
       <div class="form-group">
-        <label>姓名</label>
+        <label>姓名 <span style="color:var(--red)">*</span></label>
         <input type="text" id="fName" placeholder="借款人姓名">
+      </div>
+      <div class="form-row" style="background: rgba(212,175,55,0.06); padding: 12px; border: 1px solid var(--line-gold); border-radius: 4px; margin-bottom: 12px;">
+        <div class="form-group">
+          <label>💰 借款本金 <span style="color:var(--red)">*</span></label>
+          <input type="number" id="fLoanPrincipal" placeholder="如：3000000" step="1" oninput="updateAutoCalc()">
+        </div>
+        <div class="form-group">
+          <label>月利率 (%) <span style="color:var(--red)">*</span></label>
+          <input type="number" id="fRate" placeholder="2" step="0.1" value="2" oninput="updateAutoCalc()">
+        </div>
       </div>
       <div class="form-row">
         <div class="form-group">
@@ -738,17 +748,17 @@ body {
           </select>
         </div>
         <div class="form-group">
-          <label>每月應還金額</label>
+          <label>每月應還金額 <span style="color:var(--text-dim);font-size:11px;">(自動計算)</span></label>
           <input type="number" id="fAmount" placeholder="0" step="1">
         </div>
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label>本金部分</label>
+          <label>本金部分 <span style="color:var(--text-dim);font-size:11px;">(自動計算)</span></label>
           <input type="number" id="fPrincipal" placeholder="0" step="1">
         </div>
         <div class="form-group">
-          <label>利息部分</label>
+          <label>利息部分 <span style="color:var(--text-dim);font-size:11px;">(自動計算)</span></label>
           <input type="number" id="fInterest" placeholder="0" step="1">
         </div>
       </div>
@@ -1099,18 +1109,56 @@ function openDebtorModal(id = null) {
     document.getElementById('fInterest').value = d.interest || '';
     document.getElementById('fPhone').value = d.phone || '';
     document.getElementById('fNotes').value = d.notes || '';
+    // 從備註反推「借款本金」「月利率」(若備註是自動格式)
+    const parsed = tryParseLoanFromNotes(d.notes || '');
+    document.getElementById('fLoanPrincipal').value = parsed ? parsed.loanPrincipal : '';
+    document.getElementById('fRate').value = parsed ? parsed.rate : '2';
     if (firstSection) firstSection.style.display = 'none';
     delBtn.style.display = 'inline-block';
   } else {
     title.textContent = '新增借款人';
-    ['fName','fAmount','fPrincipal','fInterest','fPhone','fNotes'].forEach(x => document.getElementById(x).value = '');
+    ['fName','fAmount','fPrincipal','fInterest','fPhone','fNotes','fLoanPrincipal'].forEach(x => document.getElementById(x).value = '');
     document.getElementById('fDay').value = 1;
+    document.getElementById('fRate').value = '2';
     document.getElementById('fStartDate').value = todayISO();
     document.getElementById('fPrepaid').value = '2';
     if (firstSection) firstSection.style.display = '';
     delBtn.style.display = 'none';
   }
   modal.classList.add('active');
+}
+
+// 從備註字串反推「借款本金」「月利率」
+// 例：「本金 3,000,000 元 · 月利率 2% · 每月利息 60,000」→ { loanPrincipal: 3000000, rate: 2 }
+function tryParseLoanFromNotes(notes) {
+  if (!notes) return null;
+  const m = notes.match(/本金\s*([\d,]+)\s*元.*?月利率\s*([\d.]+)\s*%/);
+  if (!m) return null;
+  return {
+    loanPrincipal: parseInt(m[1].replace(/,/g, ''), 10),
+    rate: parseFloat(m[2]),
+  };
+}
+
+// 自動計算：借款本金 × 月利率 → 填入「每月應還金額/本金部分/利息部分/備註」
+function updateAutoCalc() {
+  const loanPrincipal = parseFloat(document.getElementById('fLoanPrincipal').value) || 0;
+  const rate = parseFloat(document.getElementById('fRate').value) || 0;
+  if (loanPrincipal <= 0 || rate <= 0) return;
+
+  const monthlyInterest = Math.round(loanPrincipal * rate / 100);
+
+  document.getElementById('fAmount').value = monthlyInterest;
+  document.getElementById('fPrincipal').value = 0;
+  document.getElementById('fInterest').value = monthlyInterest;
+
+  // 備註：空白 或 已是自動格式 → 覆寫；使用者手動寫過的內容不動
+  const notesEl = document.getElementById('fNotes');
+  const cur = (notesEl.value || '').trim();
+  const isAutoFormat = cur === '' || /^本金\s*[\d,]+\s*元\s*·\s*月利率\s*[\d.]+\s*%\s*·\s*每月利息\s*[\d,]+\s*$/.test(cur);
+  if (isAutoFormat) {
+    notesEl.value = `本金 ${loanPrincipal.toLocaleString()} 元 · 月利率 ${rate}% · 每月利息 ${monthlyInterest.toLocaleString()}`;
+  }
 }
 function closeDebtorModal() {
   document.getElementById('debtorModal').classList.remove('active');
@@ -1119,6 +1167,10 @@ function closeDebtorModal() {
 function saveDebtor() {
   const name = document.getElementById('fName').value.trim();
   if (!name) { alert('請輸入姓名'); return; }
+  const loanPrincipal = parseFloat(document.getElementById('fLoanPrincipal').value) || 0;
+  const rate = parseFloat(document.getElementById('fRate').value) || 0;
+  if (loanPrincipal <= 0) { alert('請輸入借款本金'); document.getElementById('fLoanPrincipal').focus(); return; }
+  if (rate <= 0) { alert('請輸入月利率'); document.getElementById('fRate').focus(); return; }
   const data = {
     name,
     day: parseInt(document.getElementById('fDay').value),
