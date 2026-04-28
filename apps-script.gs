@@ -174,6 +174,11 @@ function doGet(e) {
 
 function doPost(e) {
   try {
+    const action = (e && e.parameter && e.parameter.action) ? String(e.parameter.action) : '';
+    if (action === 'appendPayment') {
+      return doAppendPayment_(e);
+    }
+
     const body = e.postData && e.postData.contents;
     if (!body) return jsonOut_({ ok: false, error: 'empty body' });
     const state = JSON.parse(body);
@@ -232,5 +237,92 @@ function doPost(e) {
     return jsonOut_({ ok: true });
   } catch (err) {
     return jsonOut_({ ok: false, error: String(err), stack: String(err.stack || '') });
+  }
+}
+
+/**
+ * 只 append 一筆付款，不覆蓋整份資料。
+ *
+ * 呼叫方式：
+ *   POST <exec>?action=appendPayment[&ns=xxx]
+ *   Content-Type: application/json
+ *   Body: {
+ *     "debtor_id": "d_xxx",
+ *     "payment": {
+ *       "id": "tg_<gmail_messageId>",   // 冪等鍵：相同 id 不會重複寫
+ *       "date": "2026-04-27",
+ *       "principal": 0,
+ *       "interest": 60000,
+ *       "note": "自動同步（玉山）匯款人：王*哲"
+ *     }
+ *   }
+ *
+ * 回應：
+ *   { ok: true, appended: true,  debtor_id, payment_id }   // 寫入成功
+ *   { ok: true, appended: false, reason: 'duplicate id' }  // 同 id 已存在，跳過
+ *   { ok: false, error: '...' }                            // 失敗
+ */
+function doAppendPayment_(e) {
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(10000);
+  } catch (err) {
+    return jsonOut_({ ok: false, error: 'lock timeout' });
+  }
+  try {
+    const body = e.postData && e.postData.contents;
+    if (!body) return jsonOut_({ ok: false, error: 'empty body' });
+    const req = JSON.parse(body);
+    if (!req || typeof req !== 'object') return jsonOut_({ ok: false, error: 'invalid json' });
+
+    const debtorId = strOrEmpty_(req.debtor_id);
+    const payment = req.payment;
+    if (!debtorId) return jsonOut_({ ok: false, error: 'missing debtor_id' });
+    if (!payment || typeof payment !== 'object') return jsonOut_({ ok: false, error: 'missing payment' });
+
+    const ns = getNs_(e);
+    const debtorsSh = getOrCreateSheet_(sheetName_(DEBTORS_SHEET, ns), DEBTOR_COLS, DEBTOR_HEADERS);
+    const paymentsSh = getOrCreateSheet_(sheetName_(PAYMENTS_SHEET, ns), PAYMENT_COLS, PAYMENT_HEADERS);
+
+    // 確認 debtor 存在
+    const debtors = readSheet_(debtorsSh, DEBTOR_COLS);
+    const exists = debtors.some(d => strOrEmpty_(d.id) === debtorId);
+    if (!exists) return jsonOut_({ ok: false, error: 'debtor not found: ' + debtorId });
+
+    // 冪等檢查：若同 debtor 下已有相同 payment.id，直接回 appended:false
+    const paymentId = strOrEmpty_(payment.id);
+    if (paymentId) {
+      const all = readSheet_(paymentsSh, PAYMENT_COLS);
+      const dup = all.some(p =>
+        strOrEmpty_(p.debtor_id) === debtorId &&
+        strOrEmpty_(p.id) === paymentId
+      );
+      if (dup) {
+        return jsonOut_({
+          ok: true, appended: false, reason: 'duplicate id',
+          debtor_id: debtorId, payment_id: paymentId
+        });
+      }
+    }
+
+    // append 一列（不清空舊資料）
+    const row = [
+      debtorId,
+      paymentId,
+      strOrEmpty_(payment.date),
+      numOrZero_(payment.principal),
+      numOrZero_(payment.interest),
+      strOrEmpty_(payment.note),
+    ];
+    paymentsSh.appendRow(row);
+
+    return jsonOut_({
+      ok: true, appended: true,
+      debtor_id: debtorId, payment_id: paymentId
+    });
+  } catch (err) {
+    return jsonOut_({ ok: false, error: String(err), stack: String(err.stack || '') });
+  } finally {
+    lock.releaseLock();
   }
 }
