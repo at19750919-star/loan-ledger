@@ -101,7 +101,7 @@ body {
 }
 .brand .sub {
   font-family: 'Noto Serif TC', serif;
-  font-size: 14px;
+  font-size: 13px;
   color: var(--text-secondary);
   letter-spacing: 0.3em;
   margin-top: 4px;
@@ -115,28 +115,14 @@ body {
 
 .header-stats {
   display: flex;
-  gap: 48px;
-  align-items: center;
+  gap: 32px;
 }
 .stat {
   text-align: right;
-  position: relative;
-}
-.stat + .stat {
-  padding-left: 48px;
-}
-.stat + .stat::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 10%;
-  height: 80%;
-  width: 1px;
-  background: linear-gradient(to bottom, transparent, rgba(212, 175, 55, 0.35), transparent);
 }
 .stat-label {
   font-family: 'Cinzel', serif;
-  font-size: 14px;
+  font-size: 10px;
   letter-spacing: 0.2em;
   color: var(--text-dim);
   text-transform: uppercase;
@@ -185,7 +171,7 @@ body {
 }
 .panel-title .count {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 14px;
+  font-size: 11px;
   color: var(--text-dim);
   padding: 2px 8px;
   border: 1px solid var(--line);
@@ -197,7 +183,7 @@ body {
 .alert-section + .alert-section { border-top: 1px solid var(--line); }
 .alert-section h3 {
   font-family: 'Cinzel', serif;
-  font-size: 14px;
+  font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.25em;
   color: var(--text-secondary);
@@ -213,7 +199,7 @@ body {
 }
 .alert-empty {
   color: var(--text-dim);
-  font-size: 14px;
+  font-size: 13px;
   padding: 12px 16px;
   border: 1px dashed var(--line);
   text-align: center;
@@ -263,7 +249,7 @@ body {
 .day-badge .label {
   display: block;
   font-family: 'Noto Serif TC', serif;
-  font-size: 14px;
+  font-size: 10px;
   font-weight: 400;
   letter-spacing: 0.2em;
   color: var(--text-dim);
@@ -279,7 +265,7 @@ body {
   color: var(--text-primary);
 }
 .debtor-meta {
-  font-size: 14px;
+  font-size: 12px;
   color: var(--text-dim);
   margin-top: 2px;
   font-family: 'JetBrains Mono', monospace;
@@ -293,14 +279,14 @@ body {
   text-align: right;
 }
 .debtor-amount .unit {
-  font-size: 14px;
+  font-size: 11px;
   color: var(--text-dim);
   margin-right: 4px;
 }
 
 .btn-record {
   font-family: 'Cinzel', serif;
-  font-size: 14px;
+  font-size: 10px;
   letter-spacing: 0.2em;
   padding: 8px 14px;
   border: 1px solid var(--gold);
@@ -349,7 +335,7 @@ body {
   box-shadow: 0 0 6px var(--gold-glow);
 }
 .ledger-info {
-  font-size: 14px;
+  font-size: 11px;
   color: var(--text-dim);
   margin-top: 4px;
   font-family: 'JetBrains Mono', monospace;
@@ -365,7 +351,7 @@ body {
   font-weight: 500;
 }
 .ledger-amount .paid {
-  font-size: 14px;
+  font-size: 10px;
   color: var(--green);
   margin-top: 2px;
   font-family: 'JetBrains Mono', monospace;
@@ -382,7 +368,7 @@ body {
 }
 .btn {
   font-family: 'Cinzel', serif;
-  font-size: 14px;
+  font-size: 11px;
   letter-spacing: 0.2em;
   padding: 10px 20px;
   border: 1px solid var(--line-gold);
@@ -411,19 +397,6 @@ body {
   border-color: var(--red);
   color: var(--red);
 }
-.cloud-status {
-  max-width: 1280px;
-  margin: -12px auto 12px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 14px;
-  color: var(--text-dim);
-  text-align: right;
-  min-height: 18px;
-  letter-spacing: 0.05em;
-}
-.cloud-status.ok { color: #8ab77a; }
-.cloud-status.err { color: var(--red); }
-.cloud-status.pending { color: var(--gold); }
 
 /* ============ Modal ============ */
 .modal-backdrop {
@@ -492,7 +465,7 @@ body {
 .form-group label {
   display: block;
   font-family: 'Cinzel', serif;
-  font-size: 14px;
+  font-size: 10px;
   letter-spacing: 0.25em;
   color: var(--text-secondary);
   margin-bottom: 8px;
@@ -570,7 +543,7 @@ body {
 }
 .history-section h4 {
   font-family: 'Cinzel', serif;
-  font-size: 14px;
+  font-size: 11px;
   letter-spacing: 0.25em;
   color: var(--text-secondary);
   text-transform: uppercase;
@@ -586,10 +559,10 @@ body {
   background: var(--bg-card);
   margin-bottom: 6px;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 14px;
+  font-size: 12px;
 }
 .history-item .date { color: var(--text-secondary); }
-.history-item .split { color: var(--text-dim); font-size: 14px; }
+.history-item .split { color: var(--text-dim); font-size: 11px; }
 .history-item .total { color: var(--gold); font-weight: 500; }
 .history-item .del {
   background: none;
@@ -599,7 +572,7 @@ body {
   height: 24px;
   cursor: pointer;
   transition: all 0.2s;
-  font-size: 14px;
+  font-size: 12px;
 }
 .history-item .del:hover { border-color: var(--red); color: var(--red); }
 
@@ -618,7 +591,7 @@ body {
   padding: 8px 0;
   color: var(--gold);
   opacity: 0.4;
-  font-size: 14px;
+  font-size: 10px;
 }
 .ornament-divider::before, .ornament-divider::after {
   content: '';
@@ -650,25 +623,11 @@ body {
   body { padding: 16px 12px 60px; }
   .header { padding: 16px 20px; }
   .header-inner { flex-direction: column; align-items: flex-start; }
-  .header-stats { width: 100%; justify-content: space-between; gap: 20px; }
+  .header-stats { width: 100%; justify-content: space-between; gap: 16px; }
   .stat { text-align: left; }
-  .stat + .stat { padding-left: 20px; }
   .stat-value { font-size: 18px; }
   .stat-value.big { font-size: 22px; }
   .brand h1 { font-size: 22px; }
-  .toolbar {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-    justify-content: stretch;
-  }
-  .toolbar .btn {
-    padding: 10px 6px;
-    font-size: 14px;
-    letter-spacing: 0.08em;
-    text-align: center;
-    white-space: nowrap;
-  }
   .debtor-card {
     grid-template-columns: auto 1fr;
     grid-template-rows: auto auto;
@@ -689,8 +648,8 @@ body {
   <span class="header-corner br"></span>
   <div class="header-inner">
     <div class="brand">
-      <h1 id="brandTitle">借貸 <span class="brand-ornament">✦</span> 帳簿</h1>
-      <div class="sub" id="brandSub">借 · 貸 · 管 · 理</div>
+      <h1>借貸 <span class="brand-ornament">✦</span> 帳簿</h1>
+      <div class="sub">借 · 貸 · 管 · 理</div>
     </div>
     <div class="header-stats">
       <div class="stat">
@@ -710,15 +669,15 @@ body {
 </header>
 
 <div class="toolbar">
+  <span id="cloudStatus" style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.05em;padding:10px 14px;border:1px solid var(--line);background:var(--bg-surface);">☁ 載入中…</span>
+  <button class="btn" onclick="refreshFromCloud()">⟳ 重新整理</button>
   <button class="btn" onclick="enableNotifications()" id="btnNotify">◆ 啟用通知</button>
   <button class="btn" onclick="exportAllICS()">◆ 匯出日曆(全部)</button>
   <button class="btn" onclick="exportData()">◆ 匯出備份</button>
   <button class="btn" onclick="document.getElementById('importFile').click()">◆ 匯入還原</button>
   <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
-  <button class="btn" onclick="openCloudSettings()" id="btnCloud">◆ 雲端設定</button>
   <button class="btn primary" onclick="openDebtorModal()">+ 新增借款人</button>
 </div>
-<div id="cloudStatus" class="cloud-status"></div>
 
 <div class="container">
   <!-- Left: Alerts -->
@@ -797,6 +756,28 @@ body {
         <label>聯絡電話</label>
         <input type="text" id="fPhone" placeholder="電話號碼">
       </div>
+
+      <div data-first-section style="margin: 24px 0 12px; padding-top: 16px; border-top: 1px solid var(--line-gold);">
+        <div style="font-family:'Cinzel',serif; font-size:11px; letter-spacing:0.25em; color:var(--gold); text-transform:uppercase; margin-bottom:4px;">◆ 首次借款設定</div>
+        <div style="font-size:12px; color:var(--text-dim); margin-bottom:16px;">僅新增時填寫；用來計算首次預收與下次還款日</div>
+        <div class="form-row" style="margin:0">
+          <div class="form-group">
+            <label>借款起始日</label>
+            <input type="date" id="fStartDate">
+          </div>
+          <div class="form-group">
+            <label>首次預收期數</label>
+            <select id="fPrepaid">
+              <option value="0">不預收(每期收)</option>
+              <option value="1">預收 1 期</option>
+              <option value="2" selected>預收 2 期</option>
+              <option value="3">預收 3 期</option>
+              <option value="6">預收 6 期</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
       <div class="form-group">
         <label>備註</label>
         <textarea id="fNotes" placeholder="LINE ID、地址、或任何需要記錄的事"></textarea>
@@ -868,137 +849,160 @@ body {
 </div>
 
 <script>
-// ============ Namespace（?ns=shareholder 等切換獨立帳本） ============
-const NS = (new URLSearchParams(location.search).get('ns') || '').replace(/[^a-zA-Z0-9_]/g, '');
-const SUFFIX = NS ? '_' + NS : '';
-if (NS === 'shareholder') {
-  document.title = '股東帳簿';
-  document.getElementById('brandTitle').innerHTML = '股東 <span class="brand-ornament">✦</span> 帳簿';
-  document.getElementById('brandSub').textContent = '股 · 東 · 帳 · 本';
-}
+// ============ 雲端 API 設定 ============
+const API_URL = 'https://script.google.com/macros/s/AKfycbxauwz6lSMqJPb8sqyKjGho_mgZGtcGwcrLsTeiyuhWkQ8pwO1mMtrTXGx_R6Pd37Vr/exec';
+const KEY = 'loanLedgerV1'; // 仍保留 localStorage 當離線備份
 
-// ============ State ============
-const KEY = 'loanLedgerV1' + SUFFIX;
-const CLOUD_URL_KEY = 'loanLedgerCloudUrl' + SUFFIX;
-let state = loadState();
+let state = { debtors: [] };
 let editingId = null;
 let paymentTargetId = null;
 let viewingId = null;
-let cloudSaveTimer = null;
+let cloudStatus = 'loading'; // loading / online / offline / error
+let saveTimer = null;
+let savePending = false;
 
-// ============ 雲端同步（Google Apps Script Web App） ============
-function getCloudUrl() {
-  return (localStorage.getItem(CLOUD_URL_KEY) || '').trim();
+// ============ 日期格式統一 ============
+// Sheet 存的可能是 "Fri Dec 05 2025 ..." 或 "2025-12-05"，統一轉成 YYYY-MM-DD
+function normalizeDate(d) {
+  if (!d) return '';
+  const s = String(d);
+  // 已經是 YYYY-MM-DD
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  // 嘗試 parse
+  const dt = new Date(s);
+  if (isNaN(dt.getTime())) return s;
+  return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
 }
-function withNs(url) {
-  if (!NS) return url;
-  return url + (url.includes('?') ? '&' : '?') + 'ns=' + encodeURIComponent(NS);
+
+// 進來的 state 統一日期格式
+function normalizeStateDates(s) {
+  if (!s || !Array.isArray(s.debtors)) return s;
+  for (const d of s.debtors) {
+    if (Array.isArray(d.payments)) {
+      for (const p of d.payments) {
+        p.date = normalizeDate(p.date);
+      }
+    }
+    if (d.firstPaymentDate) d.firstPaymentDate = normalizeDate(d.firstPaymentDate);
+  }
+  return s;
 }
-function setCloudStatus(msg, type) {
+
+// ============ 雲端讀取 ============
+async function fetchCloudState() {
+  try {
+    const res = await fetch(API_URL, { method: 'GET', cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const json = await res.json();
+    if (!json.ok) throw new Error(json.error || 'unknown');
+    cloudStatus = 'online';
+    return json.data; // 可能是 null(雲端為空) 或 state 物件
+  } catch (e) {
+    console.error('雲端讀取失敗:', e);
+    cloudStatus = 'offline';
+    return undefined; // undefined 代表失敗
+  }
+}
+
+// ============ 雲端寫入(防抖,2秒內多次儲存合併成1次) ============
+function scheduleCloudSave() {
+  // 立刻寫到 localStorage 當備份
+  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch {}
+  savePending = true;
+  updateCloudIndicator();
+  if (saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(doCloudSave, 1500);
+}
+
+async function doCloudSave() {
+  const snapshot = JSON.parse(JSON.stringify(state));
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // 避免 CORS preflight
+      body: JSON.stringify(snapshot),
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const json = await res.json();
+    if (!json.ok) throw new Error(json.error || 'unknown');
+    cloudStatus = 'online';
+    savePending = false;
+  } catch (e) {
+    console.error('雲端寫入失敗:', e);
+    cloudStatus = 'offline';
+    // 失敗時 30 秒後重試
+    setTimeout(doCloudSave, 30000);
+  }
+  updateCloudIndicator();
+}
+
+function updateCloudIndicator() {
   const el = document.getElementById('cloudStatus');
   if (!el) return;
-  el.textContent = msg || '';
-  el.className = 'cloud-status' + (type ? ' ' + type : '');
-}
-function openCloudSettings() {
-  const current = getCloudUrl();
-  const next = prompt('貼上 Google Apps Script 網頁應用程式 URL\n（留空則關閉雲端同步，只用本機儲存）', current);
-  if (next === null) return;
-  const trimmed = next.trim();
-  if (!trimmed) {
-    localStorage.removeItem(CLOUD_URL_KEY);
-    setCloudStatus('雲端同步已關閉（使用本機儲存）', '');
-    updateCloudButton();
-    return;
-  }
-  if (!/^https:\/\/script\.google(usercontent)?\.com\//.test(trimmed)) {
-    if (!confirm('這看起來不像 Apps Script Web App URL，仍要儲存嗎？')) return;
-  }
-  localStorage.setItem(CLOUD_URL_KEY, trimmed);
-  updateCloudButton();
-  setCloudStatus('測試連線中…', 'pending');
-  cloudLoad(true);
-}
-function updateCloudButton() {
-  const btn = document.getElementById('btnCloud');
-  if (!btn) return;
-  btn.textContent = getCloudUrl() ? '◆ 雲端已連線' : '◆ 雲端設定';
-}
-async function cloudLoad(replaceLocal) {
-  const url = getCloudUrl();
-  if (!url) return;
-  try {
-    setCloudStatus('雲端讀取中…', 'pending');
-    const res = await fetch(withNs(url), { method: 'GET' });
-    const json = await res.json();
-    if (!json.ok) throw new Error(json.error || 'load failed');
-    const cloudData = json.data;
-    const cloudHasData = cloudData && Array.isArray(cloudData.debtors) && cloudData.debtors.length > 0;
-    const localHasData = state && Array.isArray(state.debtors) && state.debtors.length > 0;
-    if (cloudHasData) {
-      state = cloudData;
-      localStorage.setItem(KEY, JSON.stringify(state));
-      render();
-      setCloudStatus('已從雲端載入 · ' + new Date().toLocaleTimeString('zh-TW'), 'ok');
-    } else if (localHasData) {
-      setCloudStatus('雲端為空，上傳本機資料…', 'pending');
-      cloudSaveNow();
-    } else {
-      setCloudStatus('雲端與本機皆為空', '');
-    }
-  } catch (err) {
-    setCloudStatus('雲端讀取失敗：' + err.message, 'err');
-  }
-}
-function cloudSave() {
-  if (!getCloudUrl()) return;
-  if (cloudSaveTimer) clearTimeout(cloudSaveTimer);
-  setCloudStatus('雲端同步中…', 'pending');
-  cloudSaveTimer = setTimeout(cloudSaveNow, 800);
-}
-async function cloudSaveNow() {
-  const url = getCloudUrl();
-  if (!url) return;
-  try {
-    const res = await fetch(withNs(url), {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(state)
-    });
-    const json = await res.json();
-    if (!json.ok) throw new Error(json.error || 'save failed');
-    setCloudStatus('已同步到雲端 · ' + new Date().toLocaleTimeString('zh-TW'), 'ok');
-  } catch (err) {
-    setCloudStatus('雲端同步失敗：' + err.message, 'err');
+  if (cloudStatus === 'loading') {
+    el.textContent = '☁ 載入中…';
+    el.style.color = 'var(--text-dim)';
+  } else if (cloudStatus === 'online') {
+    el.textContent = savePending ? '☁ 同步中…' : '☁ 已同步';
+    el.style.color = savePending ? 'var(--orange)' : 'var(--green)';
+  } else if (cloudStatus === 'offline') {
+    el.textContent = '⚠ 離線(已存本地)';
+    el.style.color = 'var(--red)';
   }
 }
 
-function loadState() {
-  try {
-    const raw = localStorage.getItem(KEY);
-    if (raw) {
-      const s = JSON.parse(raw);
-      // 若 debtors 為空且從未 seed 過，做首次預填
-      if ((!s.debtors || s.debtors.length === 0) && !s.seeded) {
-        s.debtors = getInitialDebtors();
-        s.seeded = true;
-        localStorage.setItem(KEY, JSON.stringify(s));
-      }
-      return s;
-    }
-  } catch(e) {}
-  // 完全首次開啟：預填 4 筆借款人資料
-  return { debtors: getInitialDebtors(), seeded: true };
-}
+// 給舊程式碼相容的別名
 function saveState() {
-  localStorage.setItem(KEY, JSON.stringify(state));
-  cloudSave();
+  scheduleCloudSave();
 }
 
-// 首次開啟時預填的借款人資料（來自 Excel 截圖）
+// 初始化:從雲端載入 → 若雲端為空才用 localStorage 備份 → 都沒有才預填
+async function initState() {
+  cloudStatus = 'loading';
+  updateCloudIndicator();
+  const cloud = await fetchCloudState();
+  if (cloud === undefined) {
+    // 雲端讀失敗 → 用 localStorage 備份
+    try {
+      const raw = localStorage.getItem(KEY);
+      if (raw) {
+        state = normalizeStateDates(JSON.parse(raw));
+      } else {
+        state = { debtors: getInitialDebtors(), seeded: true };
+      }
+    } catch {
+      state = { debtors: getInitialDebtors(), seeded: true };
+    }
+  } else if (cloud === null) {
+    // 雲端是空的(從未存過) → 預填並推上去
+    state = { debtors: getInitialDebtors(), seeded: true };
+    scheduleCloudSave();
+  } else {
+    // 雲端有資料 → 直接用
+    state = normalizeStateDates(cloud);
+    if (!Array.isArray(state.debtors)) state.debtors = [];
+    // 同時更新 localStorage 備份
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch {}
+  }
+  render();
+  updateCloudIndicator();
+}
+
+// 手動重新整理:從雲端拉最新
+async function refreshFromCloud() {
+  cloudStatus = 'loading';
+  updateCloudIndicator();
+  const cloud = await fetchCloudState();
+  if (cloud && cloud.debtors) {
+    state = normalizeStateDates(cloud);
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch {}
+    render();
+  }
+  updateCloudIndicator();
+}
+
+// 首次開啟時預填的借款人資料（來自 Excel 截圖，僅當雲端為空時用）
 function getInitialDebtors() {
-  // 股東或其他命名空間一律不 seed（各自獨立從空白開始）
-  if (NS) return [];
   // 產生某月某日的 payment
   const mk = (pid, y, m, d, principal, interest, note) => ({
     id: pid,
@@ -1083,6 +1087,8 @@ function openDebtorModal(id = null) {
   const modal = document.getElementById('debtorModal');
   const title = document.getElementById('debtorModalTitle');
   const delBtn = document.getElementById('btnDeleteDebtor');
+  // 「首次借款設定」區塊：編輯時隱藏(因為已是既有資料)、新增時顯示
+  const firstSection = document.querySelector('#debtorModal [data-first-section]');
   if (id) {
     const d = state.debtors.find(x => x.id === id);
     title.textContent = '編輯借款人';
@@ -1093,11 +1099,15 @@ function openDebtorModal(id = null) {
     document.getElementById('fInterest').value = d.interest || '';
     document.getElementById('fPhone').value = d.phone || '';
     document.getElementById('fNotes').value = d.notes || '';
+    if (firstSection) firstSection.style.display = 'none';
     delBtn.style.display = 'inline-block';
   } else {
     title.textContent = '新增借款人';
     ['fName','fAmount','fPrincipal','fInterest','fPhone','fNotes'].forEach(x => document.getElementById(x).value = '');
     document.getElementById('fDay').value = 1;
+    document.getElementById('fStartDate').value = todayISO();
+    document.getElementById('fPrepaid').value = '2';
+    if (firstSection) firstSection.style.display = '';
     delBtn.style.display = 'none';
   }
   modal.classList.add('active');
@@ -1120,17 +1130,39 @@ function saveDebtor() {
   };
   let isNew = false;
   let debtor;
+  let prepaidInfo = null; // 首期預收資訊(僅新增時用)
   if (editingId) {
     debtor = state.debtors.find(x => x.id === editingId);
     Object.assign(debtor, data);
   } else {
     isNew = true;
+    // 讀首次借款設定
+    const startDateStr = document.getElementById('fStartDate').value;
+    const prepaidMonths = parseInt(document.getElementById('fPrepaid').value) || 0;
     debtor = {
       id: 'd_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
       ...data,
       createdAt: new Date().toISOString(),
       payments: [],
     };
+    // 自動產生首期預收記錄
+    if (startDateStr && prepaidMonths > 0 && data.amount > 0) {
+      const startDate = new Date(startDateStr + 'T00:00:00');
+      const note = prepaidMonths === 1
+        ? '首期收款'
+        : `首期預收 ${prepaidMonths} 期`;
+      debtor.payments.push({
+        id: 'p_' + Date.now() + '_first',
+        date: startDateStr,
+        principal: 0,
+        interest: data.amount * prepaidMonths,
+        note: note + `(${data.amount.toLocaleString()} × ${prepaidMonths})`,
+      });
+      // 記錄首期資訊以利後續顯示
+      debtor.firstPaymentDate = startDateStr;
+      debtor.prepaidMonths = prepaidMonths;
+      prepaidInfo = { startDateStr, prepaidMonths, total: data.amount * prepaidMonths };
+    }
     state.debtors.push(debtor);
   }
   saveState();
@@ -1139,7 +1171,16 @@ function saveDebtor() {
   // 新增時自動下載 .ics 讓使用者匯入 Google Calendar
   if (isNew && debtor.amount > 0) {
     setTimeout(() => {
-      if (confirm(`已新增「${debtor.name}」。\n\n要下載 Google 日曆檔案嗎？\n匯入後每月 ${debtor.day} 日早上 9 點會自動提醒你。`)) {
+      let msg = `已新增「${debtor.name}」。`;
+      if (prepaidInfo) {
+        msg += `\n\n✓ 首期預收 ${prepaidInfo.prepaidMonths} 期已自動記錄`;
+        msg += `\n  共 ${prepaidInfo.total.toLocaleString()} 元 (${prepaidInfo.startDateStr})`;
+      }
+      msg += `\n\n要下載 Google 日曆檔案嗎？\n匯入後每月 ${debtor.day} 日早上 9 點會自動提醒你。`;
+      if (prepaidInfo && prepaidInfo.prepaidMonths >= 2) {
+        msg += `\n(注意：日曆會從每月 ${debtor.day} 日起每月提醒，若需略過已預收的月份，請手動到 Google 日曆刪除)`;
+      }
+      if (confirm(msg)) {
         downloadICS([debtor], `reminder-${debtor.name}.ics`);
       }
     }, 200);
@@ -1212,7 +1253,7 @@ function openDetailModal(id) {
 
   document.getElementById('detailHeader').innerHTML = `
     <div class="detail-name">${esc(d.name)}</div>
-    <div style="color:var(--text-secondary);font-size:14px;font-family:'JetBrains Mono',monospace;">
+    <div style="color:var(--text-secondary);font-size:13px;font-family:'JetBrains Mono',monospace;">
       每月 ${d.day} 日還款 · 應還 ${fmt(d.amount)}/月
     </div>
     <div class="detail-meta-grid">
@@ -1308,14 +1349,56 @@ function daysLabel(n) {
   return `逾期 ${Math.abs(n)} 天`;
 }
 
-// Is this month's due date already paid?
+// 判斷「本期是否已被覆蓋」(支援預收多期)
+// 邏輯：計算「應該已收的期數」vs「實際收到的金額能覆蓋幾期」
 function isPaidThisCycle(d) {
+  if (!d.amount) return false;
+  // 應該已收幾期：從首次借款日(或最早記錄日)起算到今天為止
+  const startDate = d.firstPaymentDate
+    ? new Date(d.firstPaymentDate + 'T00:00:00')
+    : null;
+
+  // 若沒有起始日資訊，退回原本邏輯：只看本月
+  if (!startDate) {
+    const last = lastDueDate(d.day);
+    return (d.payments || []).some(p => {
+      const pd = new Date(p.date);
+      pd.setHours(0,0,0,0);
+      return pd >= last;
+    });
+  }
+
+  // 算「到本期末為止應收幾期」
+  const today = new Date();
+  today.setHours(0,0,0,0);
   const last = lastDueDate(d.day);
-  return (d.payments || []).some(p => {
-    const pd = new Date(p.date);
-    pd.setHours(0,0,0,0);
-    return pd >= last;
-  });
+  // 從 startDate 到 last(本期到期日)中間經過幾個「還款日」
+  let periodsExpected = 0;
+  // startDate 當天視為第 1 期(首次借款當下繳)
+  // 之後每月還款日各 +1 期
+  let cursor = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+  // 從首借日當月開始算
+  let firstCount = false;
+  while (cursor <= last) {
+    const dueThisMonth = new Date(cursor.getFullYear(), cursor.getMonth(),
+      Math.min(d.day, daysInMonth(cursor.getFullYear(), cursor.getMonth())));
+    // 首借日當月的「還款日」如果在首借日之前，那個月不算還款日(因為已經在首借日當天預付)
+    // 首借日「當月起算」：如首借 3/15、還款日 5 日 → 4/5 才是第一個正常還款日
+    if (cursor.getFullYear() === startDate.getFullYear() && cursor.getMonth() === startDate.getMonth()) {
+      if (!firstCount) { periodsExpected += 1; firstCount = true; } // 首借日 = 第 1 期
+    } else {
+      // 該月還款日 ≤ today 才算「應收」
+      if (dueThisMonth <= today) periodsExpected += 1;
+    }
+    // 下個月
+    cursor = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1);
+  }
+
+  const totalReceived = (d.payments || []).reduce((s,p) => s + (p.interest||0) + (p.principal||0), 0);
+  const expectedAmount = periodsExpected * d.amount;
+
+  // 已收 ≥ 應收 → 本期視為已覆蓋
+  return totalReceived >= expectedAmount;
 }
 
 // ============ Formatting ============
@@ -1522,7 +1605,7 @@ function exportAllICS() {
 }
 
 // ============ 瀏覽器通知 ============
-const NOTIFY_KEY = 'loanLedgerNotifiedDates' + SUFFIX;
+const NOTIFY_KEY = 'loanLedgerNotifiedDates';
 function getNotified() {
   try { return JSON.parse(localStorage.getItem(NOTIFY_KEY) || '{}'); } catch { return {}; }
 }
@@ -1632,11 +1715,11 @@ function importData(event) {
     try {
       const data = JSON.parse(e.target.result);
       if (!data.debtors || !Array.isArray(data.debtors)) throw new Error('格式錯誤');
-      if (!confirm(`確定匯入 ${data.debtors.length} 位借款人的資料？這會覆蓋目前所有記錄。`)) return;
-      state = data;
-      saveState();
+      if (!confirm(`確定匯入 ${data.debtors.length} 位借款人的資料？這會覆蓋目前雲端 + 本地所有記錄。`)) return;
+      state = normalizeStateDates(data);
+      saveState(); // 會自動推到雲端
       render();
-      alert('匯入成功');
+      alert('匯入成功，正在同步到雲端…');
     } catch(err) {
       alert('匯入失敗：' + err.message);
     }
@@ -1658,11 +1741,16 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-render();
+// 啟動：先載入雲端資料，再啟動其他功能
+initState();
 updateNotifyButton();
-updateCloudButton();
 checkAndNotify();
-if (getCloudUrl()) cloudLoad();
+// 每 5 分鐘自動從雲端拉一次最新（讓多裝置同步）
+setInterval(refreshFromCloud, 5 * 60 * 1000);
+// 切回分頁時也拉一次
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) refreshFromCloud();
+});
 </script>
 </body>
 </html>
