@@ -1507,28 +1507,18 @@ function render() {
   const endOfMonth = new Date(now.getFullYear(), now.getMonth()+1, 0);
 
   for (const d of debtors) {
-    const paid = isPaidThisCycle(d);
     const nextDue = nextDueDateForDebtor(d);
     const diff = daysDiff(nextDue);
-    // If paid this cycle, still show upcoming (next month) only if within 7 days
-    if (paid) {
-      if (diff >= 0 && diff <= 7 && nextDue.getMonth() !== now.getMonth()) {
-        soon.push({ d, diff, nextDue, paid: true });
-      }
-      continue;
-    }
-    // Not paid this cycle: nextDue 已經是真正該收的那一天(可能在過去=逾期)
     if (nextDue < now) {
-      overdue.push({ d, diff: diff, nextDue: nextDue, paid: false });
+      overdue.push({ d, diff, nextDue });
     } else if (diff === 0) {
-      today.push({ d, diff: 0, nextDue, paid: false });
+      today.push({ d, diff: 0, nextDue });
     } else if (diff <= 7) {
-      soon.push({ d, diff, nextDue, paid: false });
+      soon.push({ d, diff, nextDue });
     } else if (nextDue <= endOfMonth) {
-      later.push({ d, diff, nextDue, paid: false });
-    } else {
-      later.push({ d, diff, nextDue, paid: false });
+      later.push({ d, diff, nextDue });
     }
+    // 超過本月底的不放任何區塊(等到下個月才開始提醒)
   }
 
   overdue.sort((a,b) => a.diff - b.diff); // most overdue first
