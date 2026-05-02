@@ -148,9 +148,10 @@ function matchDebtor(debtors, txn) {
   const remark = String(txn.remark || '');
   const amount = Number(txn.amount) || 0;
 
-  // 第一步：找遮罩模式
-  // 遮罩字元：O o 〇 ○ ● * ＊ Ｏ · ・
-  const maskedRegex = /([一-龥])[Oo〇○●*＊Ｏ·・]([一-龥])/;
+  // 第一步：找遮罩模式 = 漢字 + 非漢字 + 漢字
+  // 不管銀行用 O / o / 〇 / ○ / ● / 0 / * / X 還是其他符號，只要中間是「非漢字」就抓
+  // 也會正確跳過連續漢字（例如「台中王O哲」會匹配王O哲，不會誤抓台中王）
+  const maskedRegex = /([一-龥])[^一-龥]([一-龥])/;
   const m = remark.match(maskedRegex);
   let candidates = [];
   if (m) {
