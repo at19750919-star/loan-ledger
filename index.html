@@ -1811,8 +1811,11 @@ if ('serviceWorker' in navigator) {
     self.addEventListener('install', e => self.skipWaiting());
     self.addEventListener('activate', e => self.clients.claim());
     self.addEventListener('fetch', e => {
-      // 純離線快取：拿到就用，失敗就走網路
-      e.respondWith(fetch(e.request).catch(() => new Response('offline')));
+      // 只接管「自己這頁、同網域、GET」的請求；
+      // 連雲端資料庫(跨網域 / POST)的請求一律不碰，直接走網路，避免擋到讀寫資料。
+      if (e.request.method !== 'GET') return;
+      if (new URL(e.request.url).origin !== self.location.origin) return;
+      e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
     });
   `;
   try {
