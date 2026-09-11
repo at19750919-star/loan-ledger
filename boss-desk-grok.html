@@ -1,0 +1,4690 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>營運工作台</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* Proportions aligned to boss-viewer.html (type / table density) */
+  :root {
+    --void: #0a0806;
+    --ink: #0a0806;
+    --panel: #14110c;
+    --panel-2: #1c1812;
+    --hover: #1c1812;
+    --input: #0a0806;
+
+    --cream: #f5e9c8;
+    --cream-soft: #a89878;
+    --muted: #a89878;
+    --dim: #6b5f48;
+
+    --gold: #d4af37;
+    --gold-hi: #f4cf5c;
+    --gold-lo: #6b5f48;
+    --brass: #d4af37;
+
+    --ok: #7fb069;
+    --ok-soft: rgba(127, 176, 105, 0.12);
+    --warn: #e08a3c;
+    --warn-soft: rgba(224, 138, 60, 0.12);
+    --danger: #c03a2b;
+    --danger-soft: rgba(192, 58, 43, 0.12);
+    --info: #d4af37;
+    --info-soft: rgba(212, 175, 55, 0.1);
+    --ai: #d4af37;
+
+    --loan: #d4af37;
+    --petty: #7fb069;
+    --arena: #e08a3c;
+    --lifan: #6d9fc4;
+    --lifan-hi: #91c8ed;
+    --lifan-soft: rgba(109, 159, 196, 0.12);
+
+    --line: #3a3025;
+    --line-soft: rgba(58, 48, 37, 0.65);
+    --line-strong: rgba(212, 175, 55, 0.35);
+    --line-gold: rgba(212, 175, 55, 0.25);
+
+    --radius: 0;
+    --radius-sm: 0;
+
+    --font-display: "Noto Serif TC", "Microsoft JhengHei", serif;
+    --font-ui: "Noto Serif TC", "Microsoft JhengHei", serif;
+    --font-mono: "Noto Serif TC", "Microsoft JhengHei", serif;
+
+    --header-h: 58px;
+    --ai-bar-h: 52px;
+    --ai-resp-h: 100px;
+    --bottom-h: 48px;
+    --gap: 12px;
+    --panel-gap: 24px;
+
+    --shadow-desk: none;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: var(--void);
+    color: var(--cream);
+    font-family: var(--font-ui);
+    font-size: 16px;
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    position: relative;
+    background: var(--void);
+  }
+
+  #desk-canvas {
+    width: 2560px;
+    height: 910px;
+    display: grid;
+    grid-template-rows: minmax(0, 1fr);
+    gap: var(--gap);
+    padding: 14px 16px;
+    position: absolute;
+    left: 0;
+    top: 0;
+    zoom: 1;
+    background:
+      radial-gradient(ellipse at top, rgba(212, 175, 55, 0.08), transparent 60%),
+      var(--void);
+  }
+
+  body::before, body::after { display: none; }
+
+  #desk-canvas > * { position: relative; z-index: 1; }
+
+  .surface {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-desk);
+    position: relative;
+  }
+
+  .surface.ledger-corners::before,
+  .surface.ledger-corners::after {
+    content: "";
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    pointer-events: none;
+    z-index: 4;
+  }
+  .surface.ledger-corners::before {
+    top: 6px; left: 6px;
+    border-top: 1px solid rgba(212, 175, 55, 0.45);
+    border-left: 1px solid rgba(212, 175, 55, 0.45);
+  }
+  .surface.ledger-corners::after {
+    bottom: 6px; right: 6px;
+    border-bottom: 1px solid rgba(212, 175, 55, 0.35);
+    border-right: 1px solid rgba(212, 175, 55, 0.35);
+  }
+
+  /* ── Header ── */
+  .header {
+    display: grid;
+    grid-template-columns: auto auto auto minmax(0, 1fr);
+    align-items: center;
+    gap: 12px;
+    padding: 0;
+    overflow: hidden;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    position: absolute !important;
+    left: 16px;
+    top: 14px;
+    width: calc((100% - 80px) / 3);
+    height: var(--header-h);
+    z-index: 80 !important;
+  }
+
+
+  .clock-block {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    justify-content: flex-start;
+  }
+
+  .clock-time {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: var(--gold-hi);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .clock-date {
+    font-size: 15px;
+    color: var(--muted);
+    white-space: nowrap;
+    letter-spacing: 0.04em;
+  }
+
+  .weather-block {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+  }
+
+  .weather-icon { font-size: 20px; line-height: 1; }
+
+  .weather-temp {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--gold);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .weather-desc {
+    font-size: 15px;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+  }
+
+  .weather-loading, .weather-error {
+    font-size: 15px;
+    color: var(--dim);
+  }
+
+  .apps {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-self: end;
+  }
+
+  .panel-tool {
+    height: 36px;
+    padding: 0 13px;
+    border: 1px solid color-mix(in srgb, var(--panel-accent) 42%, transparent);
+    background: transparent;
+    color: var(--muted);
+    font: 700 13px/1 var(--font-ui);
+    letter-spacing: .06em;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+
+  .panel-tool:hover,
+  .panel-tool[aria-expanded="true"] {
+    color: var(--gold-hi);
+    border-color: var(--gold);
+    background: rgba(212, 175, 55, .11);
+  }
+
+  .app-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 16px;
+    background: var(--panel);
+    border: 1px solid var(--line-gold);
+    color: var(--muted);
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-decoration: none;
+    cursor: pointer;
+    transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+    white-space: nowrap;
+  }
+
+  .app-btn:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+    background: var(--panel-2);
+  }
+
+  .app-btn:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 2px;
+  }
+
+  .app-btn:active { transform: translateY(1px); }
+
+  .app-btn.refresh {
+    border-color: var(--gold);
+    color: var(--gold-hi);
+    background: rgba(212, 175, 55, 0.14);
+  }
+
+  .app-btn.refresh:hover {
+    border-color: var(--gold-hi);
+    color: var(--gold-hi);
+    background: rgba(212, 175, 55, 0.22);
+  }
+
+  .app-btn.refresh.spinning svg { animation: spin 0.8s linear infinite; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.55; }
+  }
+
+  .app-btn svg { width: 15px; height: 15px; flex-shrink: 0; }
+
+  .app-btn.messaging {
+    color: var(--text);
+  }
+
+  .app-btn.messaging svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .app-btn.messaging:hover {
+    color: var(--gold-hi);
+  }
+
+  /* ── AI Command Bar (inside header, after weather) ── */
+  .ai-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    height: 40px;
+    padding: 0 0 0 12px;
+    margin: 0;
+    overflow: hidden;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    border-left: 1px solid var(--line);
+  }
+
+  .ai-bar::before { display: none; }
+
+  .ai-label {
+    position: relative;
+    isolation: isolate;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 36px;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--gold-hi);
+    white-space: nowrap;
+    letter-spacing: 0.06em;
+    padding: 0 13px;
+    flex-shrink: 0;
+    overflow: hidden;
+    background: #0d0b07;
+    border: 1px solid rgba(255, 220, 92, 0.7);
+    font-family: inherit;
+    cursor: pointer;
+    box-shadow: 0 0 8px rgba(212, 175, 55, 0.18), inset 0 0 12px rgba(212, 175, 55, 0.07);
+    transition: color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+  }
+
+  .ai-label::before {
+    content: "";
+    position: absolute;
+    z-index: -2;
+    width: 190%;
+    aspect-ratio: 1;
+    background: conic-gradient(
+      from 0deg,
+      transparent 0 12%,
+      rgba(255, 246, 181, 0.95) 15%,
+      var(--gold-hi) 18%,
+      transparent 23% 46%,
+      rgba(212, 175, 55, 0.9) 51%,
+      transparent 56% 76%,
+      #fff6b5 82%,
+      transparent 87%
+    );
+    animation: electric-border-spin 2.7s linear infinite;
+  }
+
+  .ai-label::after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset: 2px;
+    background: linear-gradient(100deg, #0b0905, #171207 52%, #0b0905);
+  }
+
+  .ai-label:hover {
+    color: #fff8c9;
+    transform: translateY(-1px);
+    box-shadow: 0 0 15px rgba(255, 218, 76, 0.52), inset 0 0 14px rgba(212, 175, 55, 0.15);
+  }
+
+  .ai-label:active { transform: translateY(0) scale(0.98); }
+
+  .ai-label:focus-visible {
+    outline: 2px solid #fff3a3;
+    outline-offset: 3px;
+  }
+
+  .ai-label svg {
+    width: 20px;
+    height: 20px;
+    filter: drop-shadow(0 0 4px rgba(255, 223, 94, 0.72));
+  }
+
+  @keyframes electric-border-spin { to { transform: rotate(360deg); } }
+
+  .ai-prompt {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--gold);
+    flex-shrink: 0;
+  }
+
+  .ai-input {
+    flex: 1;
+    min-width: 0;
+    height: 36px;
+    padding: 0 12px;
+    background: var(--input);
+    border: 1px solid var(--line);
+    color: var(--cream);
+    font-family: inherit;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+
+  .ai-input::placeholder {
+    color: var(--dim);
+    letter-spacing: 0.02em;
+  }
+
+  .ai-input:focus {
+    border-color: var(--gold);
+    background: #100e0a;
+  }
+
+  .ai-submit {
+    height: 36px;
+    padding: 0 14px;
+    flex-shrink: 0;
+    background: rgba(212, 175, 55, 0.14);
+    border: 1px solid var(--gold);
+    color: var(--gold-hi);
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  }
+
+  .ai-submit:hover {
+    background: rgba(212, 175, 55, 0.22);
+    border-color: var(--gold-hi);
+    color: var(--gold-hi);
+  }
+  .ai-submit:active { transform: scale(0.98); }
+  .ai-submit:disabled {
+    opacity: 0.5;
+    cursor: wait;
+  }
+  .ai-submit:focus-visible {
+    outline: 2px solid var(--gold-hi);
+    outline-offset: 2px;
+  }
+
+  /* ── Three Tables ── */
+  .tables {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--panel-gap);
+    min-height: 0;
+  }
+
+  .ledger-switcher {
+    grid-column: 1;
+    min-width: 0;
+    min-height: 0;
+    display: grid;
+    grid-template-rows: 46px minmax(0, 1fr) 100px;
+    gap: 10px 0;
+    padding-top: var(--header-h);
+  }
+
+  .ledger-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border: 1px solid var(--line);
+    border-bottom: 0;
+    background: #0e0c08;
+  }
+
+  .ledger-tab {
+    min-width: 0;
+    border: 0;
+    border-right: 1px solid var(--line);
+    background: transparent;
+    color: var(--muted);
+    font: 700 15px/1 var(--font-ui);
+    letter-spacing: .06em;
+    cursor: pointer;
+  }
+
+  .ledger-tab:last-child { border-right: 0; }
+  .ledger-tab:hover { color: var(--gold-hi); background: rgba(212, 175, 55, .06); }
+  .ledger-tab.is-active {
+    color: var(--gold-hi);
+    background: rgba(212, 175, 55, .14);
+    box-shadow: inset 0 -2px 0 var(--gold);
+  }
+  .ledger-tab:focus-visible { outline: 1px solid var(--cream); outline-offset: -4px; }
+
+  .ledger-switcher > .panel {
+    grid-row: 2;
+    border-top: 0;
+  }
+
+  .strategy-card {
+    grid-row: 3;
+    min-width: 0;
+    height: 100px;
+    overflow: hidden;
+    border-color: rgba(212, 175, 55, .42);
+    background:
+      linear-gradient(90deg, rgba(212, 175, 55, .075), transparent 38%),
+      #0f0d09;
+  }
+
+  .strategy-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 3px;
+    background: var(--gold);
+  }
+
+  .strategy-card-head {
+    position: absolute;
+    top: -1px;
+    left: 18px;
+    z-index: 2;
+    padding: 0 10px 0 8px;
+    background: #0f0d09;
+    color: var(--gold-hi);
+    font: 700 11px/20px var(--font-display);
+    letter-spacing: .28em;
+  }
+
+  .strategy-rows {
+    height: 100%;
+    display: grid;
+    grid-template-rows: repeat(2, 1fr);
+    padding: 16px 14px 4px;
+  }
+
+  .strategy-row {
+    min-width: 0;
+    display: grid;
+    grid-template-columns: 72px 174px minmax(0, 1fr) 190px;
+    align-items: center;
+    column-gap: 20px;
+    padding: 0 14px;
+    border-bottom: 1px solid rgba(212, 175, 55, .13);
+    white-space: nowrap;
+  }
+
+  .strategy-row:last-child { border-bottom: 0; }
+  .strategy-game { color: var(--gold-hi); font-size: 17px; font-weight: 800; letter-spacing: .06em; }
+  .strategy-date { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+  .strategy-current {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--cream);
+    font-size: 15px;
+    font-weight: 650;
+    font-variant-numeric: tabular-nums;
+  }
+  .strategy-next { color: var(--muted); font-size: 13px; text-align: right; }
+  .strategy-heads {
+    margin-left: 5px;
+    color: #ffe39a;
+    font-size: 17px;
+    font-weight: 800;
+    letter-spacing: .04em;
+    text-shadow: 0 0 10px rgba(255, 211, 105, .22);
+  }
+  .strategy-row.is-empty .strategy-date,
+  .strategy-row.is-empty .strategy-current,
+  .strategy-row.is-empty .strategy-next { color: var(--dim); }
+
+  .payroll-panel {
+    --panel-accent: var(--gold-hi);
+    grid-column: 2 / 4;
+  }
+
+  .payroll-panel::before { display: none; }
+
+  .payroll-frame-wrap {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    background: #050907;
+    position: relative;
+  }
+
+  .payroll-frame {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: #050907;
+  }
+
+  .payroll-open-link,
+  .utility-close {
+    min-width: 34px;
+    height: 34px;
+    display: inline-grid;
+    place-items: center;
+    padding: 0 12px;
+    border: 1px solid color-mix(in srgb, var(--panel-accent) 55%, transparent);
+    background: transparent;
+    color: var(--panel-accent);
+    font: 700 13px/1 var(--font-ui);
+    letter-spacing: .08em;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .payroll-panel > .payroll-open-link {
+    position: absolute;
+    top: 12px;
+    right: 14px;
+    z-index: 8;
+    background: rgba(5, 9, 7, .88);
+    backdrop-filter: blur(5px);
+  }
+
+  .payroll-open-link:hover,
+  .utility-close:hover { background: rgba(212, 175, 55, .12); border-color: currentColor; }
+
+  .utility-launch {
+    color: var(--cream);
+    border-color: rgba(212, 175, 55, .42);
+  }
+
+  .utility-launch:hover,
+  .utility-launch[aria-expanded="true"] {
+    color: var(--gold-hi);
+    border-color: var(--gold);
+    background: rgba(212, 175, 55, .13);
+  }
+
+  .utility-backdrop {
+    position: absolute !important;
+    inset: 0;
+    z-index: 90 !important;
+    background: rgba(0, 0, 0, .72);
+    backdrop-filter: blur(3px);
+  }
+
+  .utility-panel.is-utility-open {
+    display: flex !important;
+    position: absolute;
+    inset: 28px 160px;
+    z-index: 91;
+    border-color: var(--panel-accent);
+    box-shadow: 0 28px 80px rgba(0, 0, 0, .72);
+  }
+
+  .panel {
+    --panel-accent: var(--gold);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .panel::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    z-index: 3;
+    background: var(--panel-accent);
+  }
+  .panel[hidden] { display: none; }
+
+  .panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 18px;
+    flex-shrink: 0;
+    border-bottom: 1px solid var(--line-gold);
+    background: transparent;
+    position: relative;
+  }
+
+  .panel-head::after { display: none; }
+
+  .panel-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--panel-accent);
+  }
+
+  .panel-title .badge {
+    width: 8px;
+    height: 8px;
+    border-radius: 0;
+    box-shadow: none;
+    transform: none;
+    flex-shrink: 0;
+  }
+
+  .panel-title .badge { background: var(--panel-accent); color: var(--panel-accent); }
+
+  .panel-title .eyebrow {
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    color: var(--dim);
+    margin-right: 2px;
+  }
+
+  .panel-stats {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .panel-head-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .panel-refresh {
+    width: 36px;
+    height: 36px;
+    display: grid;
+    place-items: center;
+    flex: 0 0 36px;
+    padding: 0;
+    border: 1px solid color-mix(in srgb, var(--panel-accent) 55%, transparent);
+    background: var(--void);
+    color: var(--panel-accent);
+    cursor: pointer;
+  }
+
+  .panel-refresh:hover { background: color-mix(in srgb, var(--panel-accent) 10%, transparent); border-color: var(--panel-accent); }
+  .panel-refresh:focus-visible { outline: 2px solid var(--panel-accent); outline-offset: 2px; }
+  .panel-refresh:disabled { opacity: 0.5; cursor: wait; }
+  .panel-refresh svg { width: 16px; height: 16px; }
+  .panel-refresh.spinning svg { animation: spin 0.8s linear infinite; }
+
+  .loan-kpis {
+    display: block;
+    min-height: 112px;
+    flex: 0 0 auto;
+    border-bottom: 1px solid var(--line);
+    background: var(--void);
+  }
+
+  .loan-kpi-group {
+    display: grid;
+    grid-template-columns: 96px repeat(4, minmax(0, 1fr));
+    min-height: 56px;
+    border-bottom: 1px solid rgba(212, 175, 55, .13);
+  }
+
+  .loan-kpi-group:last-child { border-bottom: 0; }
+
+  .loan-kpi-group-name {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    padding: 7px 9px 7px 12px;
+    border-left: 3px solid var(--gold);
+    background: rgba(212, 175, 55, .055);
+  }
+
+  .loan-kpi-group-name strong {
+    color: var(--gold-hi);
+    font-size: 13px;
+    letter-spacing: .08em;
+    white-space: nowrap;
+  }
+
+  .loan-kpi-group-name span {
+    color: var(--dim);
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  .loan-kpi-group.is-lifan .loan-kpi-group-name {
+    border-left-color: var(--lifan);
+    background: var(--lifan-soft);
+  }
+
+  .loan-kpi-group.is-lifan .loan-kpi-group-name strong { color: var(--lifan-hi); }
+  .loan-kpi-group.is-lifan .loan-kpi-value { color: var(--lifan-hi); }
+
+  .loan-kpi {
+    min-width: 0;
+    padding: 8px 6px 7px;
+    background: var(--panel);
+    text-align: center;
+  }
+  .loan-kpi-label {
+    display: block;
+    color: var(--dim);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+  .loan-kpi-value {
+    display: block;
+    margin-top: 4px;
+    color: var(--gold-hi);
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.05;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .loan-kpi.is-error { grid-column: 1 / -1; }
+  .loan-kpi.is-error .loan-kpi-value { color: var(--danger); }
+
+  .loan-ledger-group-row td {
+    padding: 7px 12px !important;
+    background: rgba(212, 175, 55, .055);
+    border-top: 1px solid var(--line-gold);
+    border-bottom: 1px solid rgba(212, 175, 55, .16);
+    color: var(--gold-hi);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: .1em;
+  }
+
+  .loan-ledger-group-row.is-lifan td {
+    background: var(--lifan-soft);
+    border-top-color: rgba(109, 159, 196, .48);
+    border-bottom-color: rgba(109, 159, 196, .22);
+    color: var(--lifan-hi);
+  }
+
+  .loan-lifan-row td[data-col]:not([data-col="status"]) { color: var(--lifan-hi); }
+  .loan-lifan-row td { border-bottom-color: rgba(109, 159, 196, .14); }
+
+  .loan-name-cell {
+    cursor: help;
+    text-decoration: underline dotted rgba(212, 175, 55, .5);
+    text-underline-offset: 4px;
+  }
+
+  .loan-name-cell:focus-visible {
+    outline: 1px solid var(--gold);
+    outline-offset: -3px;
+  }
+
+  .loan-lifan-row .loan-name-cell {
+    text-decoration-color: rgba(109, 159, 196, .75);
+  }
+
+  .loan-hover-card {
+    position: fixed;
+    z-index: 2000;
+    width: 360px;
+    padding: 14px 16px 15px;
+    border: 1px solid rgba(212, 175, 55, .62);
+    border-left: 3px solid var(--gold);
+    background: #100d09;
+    color: var(--cream);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, .48);
+    pointer-events: none;
+  }
+
+  .loan-hover-card[hidden] { display: none; }
+  .loan-hover-card.is-lifan { border-color: rgba(109, 159, 196, .7); border-left-color: var(--lifan); }
+
+  .loan-hover-title {
+    padding-bottom: 9px;
+    margin-bottom: 9px;
+    border-bottom: 1px solid var(--line-gold);
+    color: var(--gold-hi);
+    font-size: 17px;
+    font-weight: 800;
+    letter-spacing: .06em;
+  }
+
+  .loan-hover-card.is-lifan .loan-hover-title { color: var(--lifan-hi); border-bottom-color: rgba(109, 159, 196, .28); }
+
+  .loan-hover-grid {
+    display: grid;
+    grid-template-columns: 92px minmax(0, 1fr);
+    gap: 7px 12px;
+    font-size: 14px;
+    line-height: 1.42;
+  }
+
+  .loan-hover-label { color: var(--dim); white-space: nowrap; }
+  .loan-hover-value { color: var(--cream); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+  .loan-hover-value.is-empty { color: var(--dim); }
+
+  .loan-ledger-group-count {
+    margin-left: 8px;
+    color: var(--dim);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: .04em;
+  }
+
+  .stat {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 12px;
+    border-radius: 0;
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+    border: 1px solid var(--line);
+    background: var(--void);
+    letter-spacing: 0.02em;
+  }
+
+  .stat-label {
+    color: var(--dim);
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    text-transform: none;
+  }
+  .stat-val {
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    font-size: 15px;
+    color: var(--gold);
+  }
+
+  .stat.neutral {
+    background: var(--void);
+    border-color: var(--line);
+    color: var(--muted);
+  }
+  .stat.neutral .stat-val { color: var(--cream); }
+  .stat.warn {
+    background: var(--void);
+    border-color: rgba(224, 138, 60, 0.55);
+    color: var(--warn);
+  }
+  .stat.warn .stat-val { color: var(--warn); }
+  .stat.danger {
+    background: var(--void);
+    border-color: rgba(192, 58, 43, 0.65);
+    color: var(--danger);
+  }
+  .stat.danger .stat-val { color: var(--danger); }
+  .stat.ok {
+    background: var(--void);
+    border-color: rgba(127, 176, 105, 0.55);
+    color: var(--ok);
+  }
+  .stat.ok .stat-val { color: var(--ok); }
+  .stat.info {
+    background: var(--void);
+    border-color: var(--line-gold);
+    color: var(--gold);
+  }
+  .stat.info .stat-val { color: var(--gold); }
+
+  .sheet-select {
+    height: 36px;
+    padding: 0 12px;
+    background: var(--void);
+    border: 1px solid var(--line);
+    color: var(--muted);
+    font-family: inherit;
+    font-size: 15px;
+    cursor: pointer;
+    outline: none;
+  }
+
+  .sheet-select:hover { border-color: var(--gold); color: var(--gold); }
+  .sheet-select:focus {
+    border-color: var(--gold);
+    color: var(--gold-hi);
+  }
+
+  .petty-filters {
+    display: grid;
+    grid-template-columns: auto 154px auto 154px 132px minmax(190px, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 12px;
+    flex: 0 0 auto;
+    border-bottom: 1px solid var(--line);
+    background: rgba(0, 0, 0, 0.18);
+  }
+
+  .filter-label { color: var(--dim); font-size: 12px; letter-spacing: 0.06em; white-space: nowrap; }
+  .filter-input,
+  .multi-filter summary,
+  .filter-clear {
+    height: 34px;
+    border: 1px solid var(--line);
+    background: var(--void);
+    color: var(--cream-soft);
+    font-family: inherit;
+    font-size: 13px;
+  }
+  .filter-input { width: 100%; padding: 0 9px; color-scheme: dark; }
+  .filter-input:focus { outline: none; border-color: var(--panel-accent); }
+  .multi-filter { position: relative; min-width: 0; }
+  .multi-filter summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 10px;
+    cursor: pointer;
+    list-style: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .multi-filter summary::-webkit-details-marker { display: none; }
+  .multi-filter summary::after { content: "▾"; margin-left: 10px; color: var(--panel-accent); }
+  .multi-filter[open] summary { border-color: var(--panel-accent); color: var(--cream); }
+  .multi-filter-options {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 4px);
+    z-index: 8;
+    width: 260px;
+    max-height: 260px;
+    overflow: auto;
+    padding: 6px;
+    border: 1px solid var(--line-strong);
+    background: var(--panel-2);
+  }
+  .multi-filter-option { display: flex; align-items: center; gap: 9px; padding: 7px 8px; color: var(--cream-soft); font-size: 13px; cursor: pointer; }
+  .multi-filter-option:hover { background: rgba(212, 175, 55, 0.08); color: var(--cream); }
+  .multi-filter-option input { accent-color: var(--panel-accent); }
+  .filter-clear { padding: 0 11px; cursor: pointer; }
+  .filter-clear:hover { border-color: var(--panel-accent); color: var(--panel-accent); }
+
+  .arena-filters {
+    display: grid;
+    grid-template-columns: auto 128px auto 128px 108px minmax(150px, 1fr) auto;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 12px;
+    flex: 0 0 auto;
+    border-bottom: 1px solid var(--line);
+    background: rgba(0, 0, 0, 0.18);
+  }
+  .arena-filter-select { padding: 0 8px; }
+  .arena-keyword { min-width: 0; }
+  #panel-arena .data-table th,
+  #panel-arena .data-table td { padding-left: 9px; padding-right: 9px; }
+
+  .arena-link {
+    color: var(--gold-hi);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(244, 207, 92, 0.45);
+    cursor: pointer;
+  }
+  .arena-link:hover { color: var(--cream); border-bottom-color: var(--gold-hi); }
+  .arena-link:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+  .image-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 180;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(0, 0, 0, 0.88);
+  }
+  .image-lightbox.is-open { display: flex; }
+  .image-lightbox-dialog {
+    width: min(1080px, 94%);
+    max-height: 92%;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--line-strong);
+    background: var(--panel);
+  }
+  .image-lightbox-head {
+    min-height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 8px 12px 8px 16px;
+    border-bottom: 1px solid var(--line-gold);
+    color: var(--gold-hi);
+    font-weight: 700;
+  }
+  .image-lightbox-close {
+    height: 34px;
+    padding: 0 12px;
+    border: 1px solid var(--line);
+    background: var(--void);
+    color: var(--muted);
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .image-lightbox-close:hover { border-color: var(--danger); color: var(--danger); }
+  .image-lightbox-media { min-height: 240px; display: grid; place-items: center; overflow: auto; background: #050403; }
+  .image-lightbox-media img { display: block; max-width: 100%; max-height: 72vh; object-fit: contain; }
+  .image-lightbox-media iframe { display: none; width: 100%; height: 72vh; border: 0; background: #fff; }
+  .image-lightbox-fallback {
+    padding: 10px 14px;
+    border-top: 1px solid var(--line);
+    color: var(--gold-hi);
+    text-align: center;
+    text-decoration: none;
+  }
+  .image-lightbox-fallback:hover { color: var(--cream); }
+
+  /* 小巨蛋每日明細 */
+  .daily-breakdown-body { min-height: 0; overflow: auto; }
+  .daily-breakdown-body table.data-table th { position: sticky; top: 0; }
+  .daily-breakdown-body tfoot td {
+    border-top: 1px solid var(--line-gold);
+    font-weight: 700;
+    color: var(--gold-hi);
+  }
+  .stat.is-clickable { cursor: pointer; }
+  .stat.is-clickable:hover { border-color: var(--gold); }
+
+  .panel-body {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    position: relative;
+  }
+
+  .panel-body::-webkit-scrollbar { width: 8px; height: 8px; }
+  .panel-body::-webkit-scrollbar-track { background: transparent; }
+  .panel-body::-webkit-scrollbar-thumb {
+    background: rgba(212, 175, 55, 0.22);
+  }
+  .panel-body::-webkit-scrollbar-thumb:hover { background: rgba(212, 175, 55, 0.38); }
+
+  table.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 16px;
+  }
+
+  table.data-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+
+  /* boss-viewer: th/td padding 13px 16px */
+  table.data-table th {
+    padding: 13px 16px;
+    background: rgba(0, 0, 0, 0.28);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border-bottom: 1px solid var(--line);
+    color: var(--muted);
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 15px;
+    text-align: center;
+    white-space: nowrap;
+    letter-spacing: 0.04em;
+    text-transform: none;
+  }
+
+  table.data-table td {
+    padding: 13px 16px;
+    border-bottom: 1px solid var(--line);
+    color: var(--cream);
+    text-align: center;
+    white-space: nowrap;
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: background 0.12s ease;
+    font-size: 16px;
+  }
+
+  table.data-table tbody tr:nth-child(even) td {
+    background: transparent;
+  }
+
+  table.data-table tbody tr:hover td {
+    background: var(--panel-2);
+  }
+
+  table.data-table .num {
+    font-family: inherit;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+    font-weight: 700;
+    letter-spacing: 0;
+    color: var(--gold);
+  }
+
+  table.data-table th.num { text-align: center; color: var(--muted); }
+
+  .pos { color: var(--ok); font-weight: 700; }
+  .neg { color: var(--danger); font-weight: 700; }
+  .muted { color: var(--dim); }
+  table.data-table .num.pos { color: var(--ok); }
+  table.data-table .num.neg { color: var(--danger); }
+  table.data-table .num.muted { color: var(--dim); }
+
+  /* boss-viewer pill */
+  .status-pill {
+    display: inline-flex;
+    justify-content: center;
+    min-width: 76px;
+    padding: 4px 10px;
+    border-radius: 0;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.4;
+    letter-spacing: 0.02em;
+    border: 1px solid var(--line);
+    background: var(--void);
+  }
+
+  .status-pill.pending {
+    background: var(--void);
+    border-color: var(--line-gold);
+    color: var(--muted);
+  }
+  .status-pill.due-today {
+    background: var(--void);
+    border-color: var(--gold);
+    color: var(--gold-hi);
+  }
+  .status-pill.overdue {
+    background: var(--void);
+    border-color: rgba(192, 58, 43, 0.65);
+    color: var(--danger);
+  }
+  .status-pill.paid {
+    background: var(--void);
+    border-color: rgba(127, 176, 105, 0.55);
+    color: var(--ok);
+  }
+
+  /* 到期／逾期那一列的快速還款鈕 */
+  .row-pay-btn {
+    margin-left: 8px;
+    padding: 3px 9px;
+    background: var(--void);
+    border: 1px solid var(--line-gold);
+    color: var(--gold-hi);
+    font-family: inherit;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+  }
+
+  .row-pay-btn:hover { border-color: var(--gold); background: rgba(212, 175, 55, 0.12); }
+  .row-pay-btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+  .state-msg {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    height: 100%;
+    min-height: 120px;
+    color: var(--dim);
+    font-size: 16px;
+    letter-spacing: 0.04em;
+    padding: 32px;
+  }
+
+  .state-msg.error { color: var(--danger); }
+  .state-msg .spinner {
+    width: 22px;
+    height: 22px;
+    border: 2px solid rgba(212, 175, 55, 0.2);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+
+  /* ── AI Ledger Overlay ── */
+  .ai-chat-shell {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+  }
+
+  .ai-chat-shell.is-open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  .ai-chat-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(4, 3, 2, 0.72);
+  }
+
+  .ai-chat-panel {
+    position: absolute;
+    top: 14px;
+    right: 16px;
+    bottom: 14px;
+    width: min(680px, calc(100vw - 32px));
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    overflow: hidden;
+    background: var(--panel);
+    border: 1px solid var(--line-strong);
+    transform: translateX(28px);
+    transition: transform 0.2s ease;
+  }
+
+  .ai-chat-shell.is-open .ai-chat-panel { transform: translateX(0); }
+
+  /* 使用者拖曳過之後改用 left/top 定位，不再貼右側 */
+  .ai-chat-panel.is-dragged {
+    right: auto;
+    bottom: auto;
+    transform: none;
+    transition: none;
+  }
+
+  .ai-chat-panel::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--gold);
+    z-index: 2;
+  }
+
+  .ai-chat-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    min-height: 72px;
+    padding: 14px 18px 14px 22px;
+    border-bottom: 1px solid var(--line-gold);
+    background: var(--panel-2);
+    cursor: grab;
+    user-select: none;
+    touch-action: none;
+  }
+
+  .ai-chat-head.is-grabbing { cursor: grabbing; }
+
+  .ai-chat-kicker {
+    display: block;
+    margin-bottom: 3px;
+    color: var(--dim);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+  }
+
+  .ai-chat-title-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .ai-chat-title {
+    color: var(--cream);
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+
+  .ai-chat-mode {
+    padding: 3px 7px;
+    border: 1px solid rgba(127, 176, 105, 0.45);
+    color: var(--ok);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+  }
+
+  .ai-chat-close {
+    width: 36px;
+    height: 36px;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    background: var(--void);
+    border: 1px solid var(--line);
+    color: var(--muted);
+    font-family: inherit;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .ai-chat-close:hover { border-color: var(--gold); color: var(--gold-hi); }
+  .ai-chat-close:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+  .ai-chat-messages {
+    min-height: 0;
+    overflow-y: auto;
+    padding: 22px 22px 28px 25px;
+    scroll-behavior: smooth;
+  }
+
+  .ai-chat-empty {
+    height: 100%;
+    min-height: 220px;
+    display: grid;
+    place-content: center;
+    justify-items: start;
+    gap: 8px;
+    padding: 36px;
+    border-left: 1px solid var(--line-gold);
+    color: var(--muted);
+  }
+
+  .ai-chat-empty strong {
+    color: var(--gold-hi);
+    font-size: 20px;
+    letter-spacing: 0.05em;
+  }
+
+  .ai-chat-empty span { max-width: 430px; font-size: 14px; line-height: 1.7; }
+
+  .ai-message {
+    width: min(88%, 560px);
+    margin-bottom: 18px;
+    padding: 12px 14px 13px 16px;
+    border-left: 2px solid var(--gold-lo);
+    background: var(--panel-2);
+  }
+
+  .ai-message.user {
+    margin-left: auto;
+    border-left-color: var(--gold);
+    background: rgba(212, 175, 55, 0.09);
+  }
+
+  .ai-message.error { border-left-color: var(--danger); }
+  .ai-message.warning { border-left-color: var(--warn); }
+  .ai-message.success { border-left-color: var(--ok); }
+
+  .ai-message-meta {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 7px;
+    color: var(--dim);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+  }
+
+  .ai-message.user .ai-message-meta { color: var(--gold-lo); }
+
+  .ai-message-copy {
+    color: var(--cream);
+    font-size: 15px;
+    line-height: 1.65;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .ai-message.error .ai-message-copy { color: #e89286; }
+  .ai-message.warning .ai-message-copy { color: var(--warn); }
+
+  .ai-chat-typing {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 18px 0;
+    color: var(--dim);
+    font-size: 12px;
+    letter-spacing: 0.06em;
+  }
+
+  .ai-chat-typing.is-visible { display: flex; }
+
+  .ai-action-card {
+    width: min(92%, 580px);
+    margin: 0 0 18px 0;
+    padding: 15px 16px 16px 18px;
+    border: 1px solid var(--line-gold);
+    border-left: 3px solid var(--warn);
+    background: rgba(236, 161, 84, 0.07);
+  }
+
+  .ai-action-card.is-applied { border-left-color: var(--ok); opacity: 0.78; }
+  .ai-action-card.is-cancelled { border-left-color: var(--dim); opacity: 0.58; }
+  .ai-action-kicker { color: var(--warn); font-size: 11px; letter-spacing: 0.14em; }
+  .ai-action-title { margin-top: 7px; color: var(--cream); font-size: 16px; font-weight: 700; }
+  .ai-action-change { margin-top: 8px; color: var(--muted); font-size: 13px; line-height: 1.6; white-space: pre-wrap; }
+  .ai-action-buttons { display: flex; gap: 8px; margin-top: 14px; }
+  .ai-action-button {
+    min-height: 36px;
+    padding: 0 13px;
+    border: 1px solid var(--line);
+    background: var(--void);
+    color: var(--muted);
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .ai-action-button.primary { border-color: var(--gold); color: var(--gold-hi); background: rgba(212, 175, 55, 0.12); }
+  .ai-action-button.danger { border-color: var(--danger); color: var(--danger); background: rgba(210, 70, 55, 0.12); }
+  .ai-action-button:hover { border-color: var(--gold); color: var(--cream); }
+  .ai-action-button:disabled { cursor: default; opacity: 0.55; }
+
+  .ai-chat-tools { display: flex; align-items: center; gap: 8px; cursor: default; }
+  .ai-chat-reset {
+    height: 36px;
+    padding: 0 10px;
+    background: var(--void);
+    border: 1px solid var(--line);
+    color: var(--dim);
+    font-family: inherit;
+    font-size: 11px;
+    cursor: pointer;
+  }
+  .ai-chat-reset:hover { border-color: var(--gold); color: var(--gold-hi); }
+
+  .ai-chat-typing::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--gold);
+    animation: pulse-dot 1s ease-in-out infinite;
+  }
+
+  .ai-chat-compose {
+    padding: 14px 18px 16px 22px;
+    border-top: 1px solid var(--line-gold);
+    background: var(--panel-2);
+  }
+
+  .ai-chat-compose-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    align-items: end;
+  }
+
+  .ai-chat-input {
+    width: 100%;
+    min-height: 48px;
+    max-height: 126px;
+    resize: vertical;
+    padding: 11px 12px;
+    background: var(--void);
+    border: 1px solid var(--line);
+    color: var(--cream);
+    font-family: inherit;
+    font-size: 15px;
+    line-height: 1.5;
+    outline: none;
+  }
+
+  .ai-chat-input:focus { border-color: var(--gold); }
+  .ai-chat-input::placeholder { color: var(--dim); }
+
+  .ai-chat-send {
+    min-width: 76px;
+    height: 48px;
+    padding: 0 14px;
+    background: rgba(212, 175, 55, 0.14);
+    border: 1px solid var(--gold);
+    color: var(--gold-hi);
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+  }
+
+  .ai-chat-send:hover { background: rgba(212, 175, 55, 0.22); }
+  .ai-chat-send:disabled { opacity: 0.5; cursor: wait; }
+  .ai-chat-send:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+  .ai-chat-note {
+    margin-top: 8px;
+    color: var(--dim);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+  }
+
+  .ai-chat-messages::-webkit-scrollbar { width: 8px; }
+  .ai-chat-messages::-webkit-scrollbar-thumb { background: rgba(212, 175, 55, 0.22); }
+
+  @media (max-width: 760px) {
+    .ai-chat-panel,
+    .ai-chat-panel.is-dragged { inset: 0; width: 100%; height: auto; }
+    .ai-chat-head { min-height: 64px; cursor: default; }
+    .ai-message { width: 94%; }
+  }
+
+  /* ── Bottom ── */
+  .bottom {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--gap);
+    min-height: 0;
+    position: absolute !important;
+    left: 16px;
+    width: 760px;
+    bottom: 14px;
+    height: 48px;
+    z-index: 70 !important;
+    pointer-events: none;
+  }
+
+  .bottom:not(:has(.is-open)) { display: none; }
+
+  .bottom:has(.is-open) {
+    width: auto;
+    right: 16px;
+    height: 156px;
+    grid-template-columns: 1fr;
+  }
+  .bottom:has(.is-open) > :not(.is-open) { display: none; }
+  .bottom > * { pointer-events: auto; box-shadow: 0 -12px 30px rgba(0, 0, 0, .42); }
+
+  .notes-panel:not(.is-open) .quick-loan-form,
+  .notes-panel:not(.is-open) .quick-loan-modes,
+  .log-panel:not(.is-open) .log-list { display: none !important; }
+
+  .collapse-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    border: 0;
+    background: transparent;
+    color: var(--gold);
+    font: inherit;
+    letter-spacing: inherit;
+    cursor: pointer;
+  }
+
+  .collapse-toggle::before {
+    content: "+";
+    width: 20px;
+    height: 20px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(212, 175, 55, .45);
+    color: var(--gold-hi);
+    font: 700 15px/1 var(--font-mono);
+  }
+
+  .is-open .collapse-toggle::before { content: "−"; }
+  .collapse-toggle:hover { color: var(--gold-hi); }
+  .collapse-toggle:focus-visible { outline: 1px solid var(--cream); outline-offset: 4px; }
+
+  .notes-panel, .log-panel {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .sub-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--line-gold);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--gold);
+    letter-spacing: 0.08em;
+    flex-shrink: 0;
+    background: transparent;
+  }
+
+  .sub-head .hint {
+    font-weight: 400;
+    color: var(--dim);
+    font-size: 13px;
+    letter-spacing: 0.06em;
+  }
+
+  .quick-loan-form {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: 1.35fr 1fr 1fr .72fr 1.35fr .72fr auto auto;
+    align-items: end;
+    gap: 10px;
+    padding: 11px 14px 13px;
+  }
+
+  .quick-loan-form[hidden] { display: none; }
+
+  .quick-loan-edit-form {
+    grid-template-columns: 1.7fr 1.25fr 1.35fr auto auto;
+  }
+
+  .quick-loan-modes {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--line-gold);
+  }
+
+  .quick-loan-mode {
+    min-width: 112px;
+    height: 34px;
+    padding: 0 18px;
+    border: 0;
+    border-right: 1px solid var(--line-gold);
+    background: transparent;
+    color: var(--cream);
+    font: 800 14px/1 inherit;
+    letter-spacing: .08em;
+    cursor: pointer;
+  }
+
+  .quick-loan-mode:last-child { border-right: 0; }
+  .quick-loan-mode:hover { background: rgba(212, 175, 55, .09); color: var(--gold-bright); }
+  .quick-loan-mode.is-active {
+    background: rgba(212, 175, 55, .22);
+    color: var(--gold-bright);
+    box-shadow: inset 0 -2px 0 var(--gold);
+  }
+  .quick-loan-mode:focus-visible { outline: 1px solid var(--cream); outline-offset: 2px; }
+
+  .quick-loan-field {
+    min-width: 0;
+    display: grid;
+    gap: 5px;
+  }
+
+  .quick-loan-field > span {
+    color: var(--dim);
+    font-size: 11px;
+    letter-spacing: .08em;
+    white-space: nowrap;
+  }
+
+  .quick-loan-input-wrap {
+    height: 34px;
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--line-gold);
+    background: rgba(212, 175, 55, .025);
+  }
+
+  .quick-loan-input-wrap:focus-within {
+    border-color: var(--gold);
+    background: rgba(212, 175, 55, .055);
+  }
+
+  .quick-loan-input {
+    width: 100%;
+    min-width: 0;
+    height: 32px;
+    padding: 0 9px;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--cream);
+    font: 600 14px/1 inherit;
+  }
+
+  .quick-loan-input[type="date"] { color-scheme: dark; }
+  select.quick-loan-input { appearance: auto; cursor: pointer; }
+  select.quick-loan-input option { background: #15130f; color: var(--cream); }
+
+  .quick-loan-edit-form select.quick-loan-input,
+  .quick-loan-edit-form select.quick-loan-input option {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.35;
+  }
+  .quick-loan-input::placeholder { color: rgba(190, 178, 139, .46); }
+
+  .quick-loan-unit {
+    padding-right: 8px;
+    color: var(--gold);
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .quick-loan-submit {
+    height: 34px;
+    min-width: 108px;
+    padding: 0 15px;
+    border: 1px solid var(--gold);
+    background: rgba(212, 175, 55, .11);
+    color: var(--gold-bright);
+    font: 700 13px/1 inherit;
+    letter-spacing: .08em;
+    cursor: pointer;
+  }
+
+  .quick-loan-submit:hover { background: rgba(212, 175, 55, .2); }
+  .quick-loan-submit:focus-visible { outline: 1px solid var(--cream); outline-offset: 2px; }
+  .quick-loan-submit:disabled { opacity: .45; cursor: wait; }
+
+  .quick-loan-clear {
+    height: 34px;
+    min-width: 62px;
+    padding: 0 12px;
+    border: 1px solid var(--danger);
+    background: rgba(210, 70, 55, .1);
+    color: #ff796c;
+    font: 700 12px/1 inherit;
+    letter-spacing: .08em;
+    cursor: pointer;
+  }
+
+  .quick-loan-clear:hover { color: #fff0ed; border-color: #ff796c; background: rgba(210, 70, 55, .2); }
+  .quick-loan-clear:focus-visible { outline: 1px solid var(--cream); outline-offset: 2px; }
+
+  .quick-loan-error {
+    grid-column: 1 / -1;
+    min-height: 14px;
+    margin-top: -3px;
+    color: #ef796d;
+    font-size: 11px;
+    line-height: 1;
+  }
+
+  .log-list {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 4px 0;
+  }
+
+  .log-list::-webkit-scrollbar { width: 8px; }
+  .log-list::-webkit-scrollbar-thumb {
+    background: rgba(212, 175, 55, 0.22);
+  }
+
+  .log-item {
+    display: grid;
+    grid-template-columns: 84px 1fr;
+    gap: 12px;
+    padding: 10px 18px;
+    font-size: 15px;
+    border-left: 2px solid transparent;
+    transition: background 0.12s ease, border-color 0.12s ease;
+  }
+
+  .log-item:hover {
+    background: var(--panel-2);
+    border-left-color: var(--gold);
+  }
+
+  .log-time {
+    color: var(--dim);
+    font-variant-numeric: tabular-nums;
+    font-size: 14px;
+  }
+
+  .log-text {
+    color: var(--muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .log-empty {
+    padding: 32px;
+    text-align: center;
+    color: var(--dim);
+    font-size: 16px;
+    letter-spacing: 0.04em;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+</style>
+</head>
+<body>
+<main id="desk-canvas">
+
+<header class="header surface">
+  <div class="clock-block">
+    <span class="clock-time" id="clock-time">--:--:--</span>
+    <span class="clock-date" id="clock-date">----/--/-- · --</span>
+  </div>
+  <div class="ai-bar" id="ai-bar">
+    <button type="button" class="ai-label" id="ai-chat-open" title="開啟智慧助理" aria-label="開啟智慧助理對話" aria-expanded="false">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M5 6.5h9.5A3.5 3.5 0 0 1 18 10v2.5a3.5 3.5 0 0 1-3.5 3.5H10l-4 3v-3.2A3.5 3.5 0 0 1 2.5 12.3V10A3.5 3.5 0 0 1 5 6.5Z"/>
+        <path fill="currentColor" d="m18.7 3 .55 1.45L20.7 5l-1.45.55L18.7 7l-.55-1.45L16.7 5l1.45-.55L18.7 3Zm2.1 5 .35.85.85.35-.85.35-.35.85-.35-.85-.85-.35.85-.35.35-.85Z"/>
+      </svg>
+      <span>AI</span>
+    </button>
+  </div>
+  <nav class="apps">
+    <button type="button" class="app-btn refresh" id="btn-refresh" title="重新整理三張表">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+      重新整理
+    </button>
+  </nav>
+</header>
+
+
+<section class="tables" id="dashboard-tables">
+  <div class="ledger-switcher" id="ledger-switcher">
+    <nav class="ledger-tabs" aria-label="帳冊分頁">
+      <button type="button" class="ledger-tab is-active" data-ledger-tab="loan" aria-selected="true">借貸</button>
+      <button type="button" class="ledger-tab" data-ledger-tab="petty" aria-selected="false">零用金</button>
+      <button type="button" class="ledger-tab" data-ledger-tab="arena" aria-selected="false">小巨蛋週帳</button>
+    </nav>
+  <div class="panel surface ledger-corners" id="panel-loan" data-panel="loan">
+    <div class="panel-head">
+      <div class="panel-title">
+        <span class="badge loan"></span>
+        <span class="eyebrow">01</span><span id="panel-title-loan">借貸</span>
+      </div>
+      <div class="panel-head-actions">
+        <button type="button" class="panel-tool" data-collapse-panel="quick-loan-section" aria-expanded="false">快速操作</button>
+        <button type="button" class="panel-tool" data-collapse-panel="recent-log-section" aria-expanded="false">指令紀錄</button>
+        <button type="button" class="panel-refresh" id="refresh-loan" title="只重新整理借貸" aria-label="只重新整理借貸">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.13-9.36L23 10"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="loan-kpis" id="loan-stats" aria-label="借貸總覽"></div>
+    <div class="panel-body" id="loan-body">
+      <div class="state-msg"><div class="spinner"></div>載入帳冊…</div>
+    </div>
+  </div>
+
+  <div class="panel surface ledger-corners" id="panel-petty" data-panel="petty">
+    <div class="panel-head">
+      <div class="panel-title">
+        <span class="badge petty"></span>
+        <span class="eyebrow">02</span><span id="panel-title-petty">零用金</span>
+      </div>
+      <div class="panel-head-actions">
+        <div class="panel-stats" id="petty-stats"></div>
+        <button type="button" class="panel-refresh" id="refresh-petty" title="只重新整理零用金" aria-label="只重新整理零用金">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.13-9.36L23 10"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="petty-filters" id="petty-filters" aria-label="零用金查詢條件">
+      <label class="filter-label" for="petty-date-start">日期</label>
+      <input class="filter-input" type="date" id="petty-date-start" aria-label="起始日期">
+      <span class="filter-label">到</span>
+      <input class="filter-input" type="date" id="petty-date-end" aria-label="結束日期">
+      <select class="filter-input" id="petty-usage-filter" aria-label="用途分類">
+        <option value="">用途</option>
+        <option value="公司">公司</option>
+        <option value="家用">家用</option>
+      </select>
+      <details class="multi-filter" id="petty-item-filter">
+        <summary id="petty-item-summary">項目：全部</summary>
+        <div class="multi-filter-options" id="petty-item-options"></div>
+      </details>
+      <button type="button" class="filter-clear" id="petty-filter-clear">清除</button>
+    </div>
+    <div class="panel-body" id="petty-body">
+      <div class="state-msg"><div class="spinner"></div>載入帳冊…</div>
+    </div>
+  </div>
+
+  <div class="panel surface ledger-corners" id="panel-arena" data-panel="arena">
+    <div class="panel-head">
+      <div class="panel-title">
+        <span class="badge arena"></span>
+        <span class="eyebrow">03</span><span id="panel-title-arena">小巨蛋週帳</span>
+      </div>
+      <div class="panel-head-actions">
+        <div class="panel-stats" id="arena-stats">
+          <select class="sheet-select" id="arena-sheet-select" title="選擇週次" disabled>
+            <option value="">—</option>
+          </select>
+        </div>
+        <button type="button" class="panel-refresh" id="refresh-arena" title="只重新整理小巨蛋週帳" aria-label="只重新整理小巨蛋週帳">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.13-9.36L23 10"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="arena-filters" id="arena-filters" aria-label="小巨蛋查詢條件">
+      <label class="filter-label" for="arena-date-start">日期</label>
+      <input class="filter-input" type="date" id="arena-date-start" aria-label="小巨蛋起始日期">
+      <span class="filter-label">到</span>
+      <input class="filter-input" type="date" id="arena-date-end" aria-label="小巨蛋結束日期">
+      <select class="filter-input arena-filter-select" id="arena-result-filter" aria-label="輸贏">
+        <option value="">輸贏：全部</option>
+        <option value="win">只看贏</option>
+        <option value="loss">只看輸</option>
+      </select>
+      <input class="filter-input arena-keyword" type="search" id="arena-keyword" placeholder="姓名或組別" aria-label="姓名或組別關鍵字">
+      <button type="button" class="filter-clear" id="arena-filter-clear">清除</button>
+    </div>
+    <div class="panel-body" id="arena-body">
+      <div class="state-msg"><div class="spinner"></div>載入帳冊…</div>
+    </div>
+  </div>
+  <aside class="strategy-card surface ledger-corners" id="strategy-card" aria-label="策略 E 開獎資訊">
+    <div class="strategy-card-head">STRATEGY E</div>
+    <div class="strategy-rows" id="strategy-rows">
+      <div class="strategy-row is-empty"><strong class="strategy-game">加州彩</strong><span class="strategy-current">載入中…</span></div>
+      <div class="strategy-row is-empty"><strong class="strategy-game">今彩539</strong><span class="strategy-current">載入中…</span></div>
+    </div>
+  </aside>
+  </div>
+
+  <div class="panel payroll-panel surface ledger-corners" id="panel-payroll">
+    <a class="payroll-open-link" id="payroll-open-link" href="https://at19750919-star.github.io/xjd-payroll/?v=latest-week" target="_blank" rel="noopener">放大開啟</a>
+    <div class="payroll-frame-wrap">
+      <iframe class="payroll-frame" id="payroll-frame" title="薪資結算" src="https://at19750919-star.github.io/xjd-payroll/?v=latest-week"></iframe>
+    </div>
+  </div>
+</section>
+
+<section class="bottom">
+  <div class="notes-panel surface" id="quick-loan-section">
+    <div class="sub-head">
+      <button type="button" class="collapse-toggle" data-collapse-panel="quick-loan-section" aria-expanded="false">借貸快速操作</button>
+      <span class="quick-loan-modes" aria-label="選擇借貸操作">
+        <button class="quick-loan-mode is-active" type="button" data-quick-loan-mode="add" aria-pressed="true">新增借款人</button>
+        <button class="quick-loan-mode" type="button" data-quick-loan-mode="edit" aria-pressed="false">修改借款人</button>
+      </span>
+    </div>
+    <form class="quick-loan-form" id="quick-loan-form" data-quick-loan-panel="add" novalidate>
+      <label class="quick-loan-field">
+        <span>借款人</span>
+        <span class="quick-loan-input-wrap"><input class="quick-loan-input" id="quick-loan-name" type="text" maxlength="80" placeholder="王小明" autocomplete="off"></span>
+      </label>
+      <label class="quick-loan-field">
+        <span>本金</span>
+        <span class="quick-loan-input-wrap"><input class="quick-loan-input" id="quick-loan-principal" type="text" inputmode="decimal" placeholder="250"><span class="quick-loan-unit">萬</span></span>
+      </label>
+      <label class="quick-loan-field">
+        <span>每月應收</span>
+        <span class="quick-loan-input-wrap"><input class="quick-loan-input" id="quick-loan-monthly" type="text" inputmode="decimal" placeholder="5"><span class="quick-loan-unit">萬</span></span>
+      </label>
+      <label class="quick-loan-field">
+        <span>收款日</span>
+        <span class="quick-loan-input-wrap"><input class="quick-loan-input" id="quick-loan-day" type="text" inputmode="numeric" placeholder="15"><span class="quick-loan-unit">日</span></span>
+      </label>
+      <label class="quick-loan-field">
+        <span>借款起始日</span>
+        <span class="quick-loan-input-wrap"><input class="quick-loan-input" id="quick-loan-date" type="date"></span>
+      </label>
+      <label class="quick-loan-field">
+        <span>首次預收</span>
+        <span class="quick-loan-input-wrap"><input class="quick-loan-input" id="quick-loan-prepaid" type="text" inputmode="numeric" placeholder="2"><span class="quick-loan-unit">期</span></span>
+      </label>
+      <button class="quick-loan-submit" id="quick-loan-submit" type="submit">送給 AI</button>
+      <button class="quick-loan-clear" id="quick-loan-clear" type="button">清空</button>
+      <div class="quick-loan-error" id="quick-loan-error" role="status" aria-live="polite"></div>
+    </form>
+    <form class="quick-loan-form quick-loan-edit-form" id="quick-edit-form" data-quick-loan-panel="edit" novalidate hidden>
+      <label class="quick-loan-field">
+        <span>借款人</span>
+        <span class="quick-loan-input-wrap"><select class="quick-loan-input" id="quick-edit-borrower"><option value="">載入借款人…</option></select></span>
+      </label>
+      <label class="quick-loan-field">
+        <span>修改項目</span>
+        <span class="quick-loan-input-wrap">
+          <select class="quick-loan-input" id="quick-edit-item">
+            <option value="principal">本金</option>
+            <option value="monthlyAmount">每月應收</option>
+            <option value="day">收款日</option>
+          </select>
+        </span>
+      </label>
+      <label class="quick-loan-field">
+        <span id="quick-edit-value-label">修改後本金</span>
+        <span class="quick-loan-input-wrap"><input class="quick-loan-input" id="quick-edit-value" type="text" inputmode="decimal" placeholder="250"><span class="quick-loan-unit" id="quick-edit-unit">萬</span></span>
+      </label>
+      <button class="quick-loan-submit" id="quick-edit-submit" type="submit">送給 AI</button>
+      <button class="quick-loan-clear" id="quick-edit-clear" type="button">清空</button>
+      <div class="quick-loan-error" id="quick-edit-error" role="status" aria-live="polite"></div>
+    </form>
+  </div>
+  <div class="log-panel surface" id="recent-log-section">
+    <div class="sub-head">
+      <button type="button" class="collapse-toggle" data-collapse-panel="recent-log-section" aria-expanded="false">最近指令 / 更新</button>
+      <span class="hint" id="log-count"></span>
+    </div>
+    <div class="log-list" id="log-list">
+      <div class="log-empty">尚無紀錄</div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<aside class="loan-hover-card" id="loan-hover-card" role="tooltip" hidden></aside>
+
+<div class="ai-chat-shell" id="ai-chat-shell" aria-hidden="true">
+  <div class="ai-chat-backdrop" id="ai-chat-backdrop"></div>
+  <section class="ai-chat-panel" id="ai-chat-panel" role="dialog" aria-modal="true" aria-labelledby="ai-chat-title">
+    <header class="ai-chat-head" id="ai-chat-head" title="拖曳標題列可移動視窗；雙擊還原位置">
+      <div>
+        <span class="ai-chat-kicker">OPERATIONS LEDGER · AI</span>
+        <div class="ai-chat-title-row">
+          <h2 class="ai-chat-title" id="ai-chat-title">營運對話簿</h2>
+          <span class="ai-chat-mode">帳冊唯讀 · 設定需確認</span>
+        </div>
+      </div>
+      <div class="ai-chat-tools">
+        <button type="button" class="ai-chat-reset" id="ai-chat-clear">清空對話</button>
+        <button type="button" class="ai-chat-reset" id="ai-settings-reset">重設版面</button>
+        <button type="button" class="ai-chat-close" id="ai-chat-close" aria-label="關閉對話">×</button>
+      </div>
+    </header>
+    <div class="ai-chat-messages" id="ai-output" aria-live="polite">
+      <div class="ai-chat-empty" id="ai-chat-empty">
+        <strong>營運助理已就緒</strong>
+        <span>可以詢問帳冊，也可以說「把零用金移到左邊」、「零用金只顯示 20 筆」；設定會先讓你預覽確認。</span>
+      </div>
+      <div class="ai-chat-typing" id="ai-chat-typing">正在核對工作台資料</div>
+    </div>
+    <div class="ai-chat-compose">
+      <div class="ai-chat-compose-row">
+        <textarea class="ai-chat-input" id="ai-dialog-input" rows="2" placeholder="例如：把零用金移到左邊；Enter 傳送"></textarea>
+        <button type="button" class="ai-chat-send" id="ai-dialog-submit">傳送</button>
+      </div>
+      <div class="ai-chat-note">帳冊永遠唯讀 · 顯示設定會先預覽，確認後只存在本機瀏覽器</div>
+    </div>
+  </section>
+</div>
+
+<div class="image-lightbox" id="arena-image-lightbox" aria-hidden="true">
+  <section class="image-lightbox-dialog" role="dialog" aria-modal="true" aria-labelledby="arena-image-title">
+    <header class="image-lightbox-head">
+      <span id="arena-image-title">圖片預覽</span>
+      <button type="button" class="image-lightbox-close" id="arena-image-close">關閉</button>
+    </header>
+    <div class="image-lightbox-media">
+      <img id="arena-image-img" alt="">
+      <iframe id="arena-image-frame" title="Google 雲端硬碟圖片預覽"></iframe>
+    </div>
+    <a class="image-lightbox-fallback" id="arena-image-fallback" href="#" target="_blank" rel="noopener">用 Google 雲端硬碟開啟</a>
+  </section>
+</div>
+
+<div class="image-lightbox" id="arena-daily-lightbox" aria-hidden="true">
+  <section class="image-lightbox-dialog" role="dialog" aria-modal="true" aria-labelledby="arena-daily-title">
+    <header class="image-lightbox-head">
+      <span id="arena-daily-title">每日明細</span>
+      <button type="button" class="image-lightbox-close" id="arena-daily-close">關閉</button>
+    </header>
+    <div class="daily-breakdown-body" id="arena-daily-body"></div>
+  </section>
+</div>
+
+
+<script>
+(function () {
+  "use strict";
+
+  const ENDPOINTS = {
+    loan: "https://script.google.com/macros/s/AKfycbxauwz6lSMqJPb8sqyKjGho_mgZGtcGwcrLsTeiyuhWkQ8pwO1mMtrTXGx_R6Pd37Vr/exec",
+    petty: "https://script.google.com/macros/s/AKfycbwqYDbOPvwO602G7jE35Vvu1MDIWVjiWzlS0BVr0qiScaMu-FpuZXpa8BISfqOKQ3w-/exec?api=1",
+    arena: "https://script.google.com/macros/s/AKfycbztfBLDMztCYMt8t3d54wDvaLIXigCzXu4Q4QyC7Q5zMpdVt42aP3Kw1dHDeToCDdBJXA/exec",
+    weather: "https://api.open-meteo.com/v1/forecast?latitude=24.9936&longitude=121.3010&current=temperature_2m,weather_code&timezone=Asia%2FTaipei"
+  };
+
+  const LS_QUICK_LOAN = "boss-desk-grok-quick-loan-v1";
+  const LS_LOG = "boss-desk-grok-log";
+  const LS_UI_CONFIG = "boss-desk-grok-ui-config-v1";
+  const LS_CHAT_POS = "boss-desk-grok-chat-pos-v1";
+  const LS_CHAT_LOG = "boss-desk-grok-chat-log-v1";
+  const MAX_LOG = 80;
+  const MAX_AI_HISTORY = 12;
+  const MAX_CHAT_LOG = 50;
+  const ARENA_ROLLING_RATE = 200;
+  const WEEKDAYS = ["日", "一", "二", "三", "四", "五", "六"];
+  const aiHistory = [];
+  let aiBusy = false;
+  let aiLastFocus = null;
+  let chatPos = null;
+  let chatLog = [];
+  let aiEmptyNode = null;
+
+  const state = {
+    loan: { status: "loading", debtors: [], rows: [], error: null },
+    petty: { status: "loading", balance: 0, records: [], error: null },
+    arena: {
+      status: "loading",
+      sheet: null,
+      sheets: [],
+      records: [],
+      allRecords: [],
+      allWeeksStatus: "idle",
+      total: null,
+      error: null
+    }
+  };
+  const pettyFilters = { start: "", end: "", usage: "", items: new Set() };
+  const arenaFilters = { start: "", end: "", result: "", keyword: "" };
+  let arenaLoadVersion = 0;
+  let activeLedgerPanel = "loan";
+  let strategyRetryTimer = null;
+
+  const PANEL_LABELS = { loan: "借貸", petty: "零用金", arena: "小巨蛋週帳" };
+  const COLOR_LABELS = { gold: "金色", green: "綠色", orange: "橘色", red: "紅色", blue: "藍色" };
+  const COLOR_VALUES = { gold: "#d4af37", green: "#7fb069", orange: "#eca154", red: "#d35d54", blue: "#6d9fc4" };
+  const COLUMN_LABELS = {
+    loan: { name: "借款人", day: "日", principal: "本金", monthly: "月收", received: "已收", status: "狀態" },
+    petty: { date: "日期", usage: "用途", item: "項目", amount: "異動", balance: "結餘", note: "備註", receipt: "發票" },
+    arena: { date: "日期", seq: "單號", group: "組別", name: "姓名", result: "勝負", rolling: "洗碼", redSlip: "紅單", lineReport: "線報表", note: "備註" }
+  };
+  const DEFAULT_UI_CONFIG = {
+    panelVisibility: { loan: true, petty: true, arena: true },
+    panelOrder: ["loan", "petty", "arena"],
+    titles: { loan: "借貸", petty: "零用金", arena: "小巨蛋週帳" },
+    colors: { loan: "gold", petty: "green", arena: "orange" },
+    defaultArenaSheet: "",
+    rowLimits: { loan: 0, petty: 0, arena: 0 },
+    columns: {
+      loan: ["name", "day", "principal", "monthly", "received", "status"],
+      petty: ["date", "usage", "item", "amount", "balance", "note", "receipt"],
+      arena: ["date", "seq", "group", "name", "result", "rolling", "redSlip", "lineReport", "note"]
+    }
+  };
+  let uiConfig = loadUiConfig();
+
+  const DESK_WIDTH = 2560;
+  const DESK_HEIGHT = 910;
+
+  function cloneDefaultUiConfig() {
+    return JSON.parse(JSON.stringify(DEFAULT_UI_CONFIG));
+  }
+
+  function exactPermutation(value, expected) {
+    return Array.isArray(value) && value.length === expected.length &&
+      new Set(value).size === expected.length && expected.every(function (item) { return value.includes(item); });
+  }
+
+  function normalizeUiConfig(raw) {
+    const next = cloneDefaultUiConfig();
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) return next;
+    ["loan", "petty", "arena"].forEach(function (panel) {
+      if (raw.panelVisibility && typeof raw.panelVisibility[panel] === "boolean") next.panelVisibility[panel] = raw.panelVisibility[panel];
+      if (raw.titles && typeof raw.titles[panel] === "string" && raw.titles[panel].trim()) next.titles[panel] = raw.titles[panel].trim().slice(0, 24);
+      if (raw.colors && COLOR_VALUES[raw.colors[panel]]) next.colors[panel] = raw.colors[panel];
+      if (raw.rowLimits && Number.isInteger(raw.rowLimits[panel]) && raw.rowLimits[panel] >= 0 && raw.rowLimits[panel] <= 200) next.rowLimits[panel] = raw.rowLimits[panel];
+      if (raw.columns && exactPermutation(raw.columns[panel], DEFAULT_UI_CONFIG.columns[panel])) next.columns[panel] = raw.columns[panel].slice();
+    });
+    if (exactPermutation(raw.panelOrder, DEFAULT_UI_CONFIG.panelOrder)) next.panelOrder = raw.panelOrder.slice();
+    if (typeof raw.defaultArenaSheet === "string") next.defaultArenaSheet = raw.defaultArenaSheet.trim().slice(0, 80);
+    if (!Object.values(next.panelVisibility).some(Boolean)) next.panelVisibility.loan = true;
+    return next;
+  }
+
+  function loadUiConfig() {
+    try { return normalizeUiConfig(JSON.parse(localStorage.getItem(LS_UI_CONFIG) || "null")); }
+    catch (e) { return cloneDefaultUiConfig(); }
+  }
+
+  function saveUiConfig() {
+    try { localStorage.setItem(LS_UI_CONFIG, JSON.stringify(uiConfig)); }
+    catch (e) { /* ignore local storage quota */ }
+  }
+
+  function limitedRows(panel, rows) {
+    const limit = uiConfig.rowLimits[panel] || 0;
+    return limit ? rows.slice(0, limit) : rows;
+  }
+
+  function applyColumnOrder(panel, body) {
+    const order = uiConfig.columns[panel];
+    const table = body.querySelector("table");
+    if (!table || !order) return;
+    table.querySelectorAll("tr").forEach(function (row) {
+      const cells = Array.from(row.children);
+      const byKey = {};
+      cells.forEach(function (cell) { byKey[cell.getAttribute("data-col")] = cell; });
+      order.forEach(function (key) { if (byKey[key]) row.appendChild(byKey[key]); });
+    });
+  }
+
+  function applyUiConfig(renderTables) {
+    const container = document.getElementById("ledger-switcher");
+    uiConfig.panelOrder.forEach(function (panel) {
+      const el = document.getElementById("panel-" + panel);
+      if (!el) return;
+      container.appendChild(el);
+      el.hidden = panel !== activeLedgerPanel;
+      el.style.setProperty("--panel-accent", COLOR_VALUES[uiConfig.colors[panel]]);
+      document.getElementById("panel-title-" + panel).textContent = uiConfig.titles[panel];
+    });
+    document.querySelectorAll("[data-ledger-tab]").forEach(function (button) {
+      const selected = button.dataset.ledgerTab === activeLedgerPanel;
+      button.classList.toggle("is-active", selected);
+      button.setAttribute("aria-selected", selected ? "true" : "false");
+    });
+    if (renderTables) {
+      renderLoan();
+      renderPetty();
+      renderArena();
+    }
+  }
+
+  function switchLedgerPanel(panel) {
+    if (!PANEL_LABELS[panel]) return;
+    activeLedgerPanel = panel;
+    applyUiConfig(false);
+    addLog("切換帳冊：「" + uiConfig.titles[panel] + "」");
+  }
+
+  function toggleBottomPanel(sectionId) {
+    const section = document.getElementById(sectionId);
+    if (!section) return;
+    const willOpen = !section.classList.contains("is-open");
+    if (willOpen) {
+      document.querySelectorAll(".bottom .is-open").forEach(function (openSection) {
+        openSection.classList.remove("is-open");
+      });
+    }
+    section.classList.toggle("is-open", willOpen);
+    document.querySelectorAll("[data-collapse-panel]").forEach(function (button) {
+      const expanded = document.getElementById(button.dataset.collapsePanel).classList.contains("is-open");
+      button.setAttribute("aria-expanded", expanded ? "true" : "false");
+    });
+    document.body.classList.toggle("bottom-expanded", !!document.querySelector(".bottom .is-open"));
+  }
+
+  function pad2(n) { return String(n).padStart(2, "0"); }
+
+  function fitDeskToViewport() {
+    const canvas = document.getElementById("desk-canvas");
+    if (!canvas) return;
+    const scale = Math.min(window.innerWidth / DESK_WIDTH, window.innerHeight / DESK_HEIGHT);
+    const left = Math.max(0, (window.innerWidth - DESK_WIDTH * scale) / 2);
+    const top = Math.max(0, (window.innerHeight - DESK_HEIGHT * scale) / 2);
+    canvas.style.left = (left / scale) + "px";
+    canvas.style.top = (top / scale) + "px";
+    canvas.style.zoom = String(scale);
+  }
+
+  function formatMoney(n) {
+    if (n == null || n === "" || Number.isNaN(Number(n))) return "—";
+    const num = Number(n);
+    const abs = Math.abs(num);
+    const formatted = abs.toLocaleString("zh-TW", { maximumFractionDigits: 0 });
+    if (num < 0) return "-" + formatted;
+    return formatted;
+  }
+
+  function formatMoneySigned(n) {
+    if (n == null || n === "" || Number.isNaN(Number(n))) return "—";
+    const num = Number(n);
+    const abs = Math.abs(num);
+    const formatted = abs.toLocaleString("zh-TW", { maximumFractionDigits: 0 });
+    if (num > 0) return "+" + formatted;
+    if (num < 0) return "-" + formatted;
+    return "0";
+  }
+
+  function formatWan(n) {
+    const value = Number(n) || 0;
+    return (value / 10000).toLocaleString("zh-TW", { maximumFractionDigits: 2 }) + " 萬";
+  }
+
+  function normalizeDate(raw) {
+    if (raw == null || raw === "") return null;
+    if (raw instanceof Date && !Number.isNaN(raw.getTime())) {
+      return raw.getFullYear() + "-" + pad2(raw.getMonth() + 1) + "-" + pad2(raw.getDate());
+    }
+    const s = String(raw).trim();
+    const iso = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (iso) return iso[1] + "-" + iso[2] + "-" + iso[3];
+    const slash = s.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})/);
+    if (slash) return slash[1] + "-" + pad2(+slash[2]) + "-" + pad2(+slash[3]);
+    const dash = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+    if (dash) return dash[1] + "-" + pad2(+dash[2]) + "-" + pad2(+dash[3]);
+    const d = new Date(s);
+    if (!Number.isNaN(d.getTime())) {
+      return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate());
+    }
+    return null;
+  }
+
+  function todayYMD() {
+    const d = new Date();
+    return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate());
+  }
+
+  function parseYMD(ymd) {
+    if (!ymd) return null;
+    const p = ymd.split("-");
+    return new Date(+p[0], +p[1] - 1, +p[2]);
+  }
+
+  function daysBetween(a, b) {
+    const ms = parseYMD(b).getTime() - parseYMD(a).getTime();
+    return Math.round(ms / 86400000);
+  }
+
+  function lastDayOfMonth(year, month) {
+    return new Date(year, month, 0).getDate();
+  }
+
+  function dueDateForMonth(year, month, day) {
+    const last = lastDayOfMonth(year, month);
+    const d = Math.min(day, last);
+    return year + "-" + pad2(month) + "-" + pad2(d);
+  }
+
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function nowStamp() {
+    const d = new Date();
+    return pad2(d.getHours()) + ":" + pad2(d.getMinutes()) + ":" + pad2(d.getSeconds());
+  }
+
+  function fullStamp() {
+    const d = new Date();
+    return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate()) +
+      " " + pad2(d.getHours()) + ":" + pad2(d.getMinutes()) + ":" + pad2(d.getSeconds());
+  }
+
+  function weatherFromCode(code) {
+    const c = Number(code);
+    if (c === 0) return { icon: "☀️", text: "晴" };
+    if (c === 1) return { icon: "🌤️", text: "大致晴朗" };
+    if (c === 2) return { icon: "⛅", text: "局部多雲" };
+    if (c === 3) return { icon: "☁️", text: "陰" };
+    if (c === 45 || c === 48) return { icon: "🌫️", text: "霧" };
+    if (c >= 51 && c <= 57) return { icon: "🌦️", text: "毛毛雨" };
+    if (c >= 61 && c <= 67) return { icon: "🌧️", text: "雨" };
+    if (c >= 71 && c <= 77) return { icon: "❄️", text: "雪" };
+    if (c >= 80 && c <= 82) return { icon: "🌦️", text: "陣雨" };
+    if (c >= 85 && c <= 86) return { icon: "🌨️", text: "陣雪" };
+    if (c === 95) return { icon: "⛈️", text: "雷雨" };
+    if (c === 96 || c === 99) return { icon: "⛈️", text: "雷雹" };
+    return { icon: "🌡️", text: "天氣代碼 " + c };
+  }
+
+  function paymentTotal(payments) {
+    if (!Array.isArray(payments)) return 0;
+    return payments.reduce(function (sum, p) {
+      return sum + (Number(p.principal) || 0) + (Number(p.interest) || 0);
+    }, 0);
+  }
+
+  function scheduleBaseDateFor(debtor) {
+    const first = normalizeDate(debtor && debtor.firstPaymentDate);
+    if (first) return first;
+    if (!debtor || !Array.isArray(debtor.payments)) return "";
+    const dates = debtor.payments.map(function (p) { return normalizeDate(p.date); })
+      .filter(Boolean).sort();
+    return dates[0] || "";
+  }
+
+  // 與 index.html 相同：起始月份視為第 1 期，之後每個已到收款日的月份再加 1 期。
+  // 舊借款人若沒有 firstPaymentDate，改以最早一筆付款日作為起始日。
+  function countPeriodsDueForDebtor(debtor, today) {
+    const first = scheduleBaseDateFor(debtor);
+    if (!first || first > today) return 0;
+
+    const day = Number(debtor.day) || 1;
+    const firstD = parseYMD(first);
+    let count = 1;
+    let cursor = new Date(firstD.getFullYear(), firstD.getMonth() + 1, 1);
+
+    while (true) {
+      const due = dueDateForMonth(cursor.getFullYear(), cursor.getMonth() + 1, day);
+      if (due > today) break;
+      count++;
+      cursor = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1);
+      if (count > 600) break;
+    }
+    return count;
+  }
+
+  /* 下次還款日：與主程式 nextDueDateForDebtor 同一套規則
+     已收金額換算成幾期 → 起始日往後推那麼多個月的收款日 */
+  function nextDueDateFor(debtor) {
+    const day = Number(debtor.day) || 1;
+    const amount = Number(debtor.amount) || 0;
+    if (!amount) return plainNextDueDate(day);
+
+    // 基準日：首次應收日 → 最早一筆還款 → 都沒有就用單純的下一個收款日
+    const base = scheduleBaseDateFor(debtor);
+    if (!base) return plainNextDueDate(day);
+
+    const covered = Math.floor(paymentTotal(debtor.payments) / amount);
+    const baseD = parseYMD(base);
+    const target = new Date(baseD.getFullYear(), baseD.getMonth() + covered, 1);
+    return dueDateForMonth(target.getFullYear(), target.getMonth() + 1, day);
+  }
+
+  function plainNextDueDate(day) {
+    const today = todayYMD();
+    const t = parseYMD(today);
+    const thisMonth = dueDateForMonth(t.getFullYear(), t.getMonth() + 1, day);
+    if (thisMonth >= today) return thisMonth;
+    const nm = new Date(t.getFullYear(), t.getMonth() + 1, 1);
+    return dueDateForMonth(nm.getFullYear(), nm.getMonth() + 1, day);
+  }
+
+  function computeDebtorStatus(debtor, today) {
+    const day = Number(debtor.day) || 1;
+    const received = paymentTotal(debtor.payments);
+    const base = scheduleBaseDateFor(debtor);
+    const nextDue = base ? nextDueDateFor(debtor) : "";
+    const todayD = parseYMD(today);
+    const dueThisMonth = dueDateForMonth(todayD.getFullYear(), todayD.getMonth() + 1, day);
+
+    // 有起始資料時，以「已收金額能覆蓋到哪一期」推算真正下一個應收日。
+    // 這可保留上月未繳的逾期，不會因月份切換而重設成待收。
+    if (nextDue) {
+      if (nextDue < today) {
+        const overdueDays = daysBetween(nextDue, today);
+        return { label: "逾期 " + overdueDays + " 天", kind: "overdue", received: received, overdueDays: overdueDays };
+      }
+      if (nextDue === today) {
+        return { label: "今日到期", kind: "due-today", received: received, overdueDays: 0 };
+      }
+      if (dueThisMonth <= today) {
+        return { label: "已收", kind: "paid", received: received, overdueDays: 0 };
+      }
+      return { label: "待收", kind: "pending", received: received, overdueDays: 0 };
+    }
+
+    // 完全沒有起始日或付款紀錄時，只能依本月收款日判斷。
+    if (dueThisMonth < today) {
+      const overdueDays = daysBetween(dueThisMonth, today);
+      return { label: "逾期 " + overdueDays + " 天", kind: "overdue", received: received, overdueDays: overdueDays };
+    }
+    if (dueThisMonth === today) {
+      return { label: "今日到期", kind: "due-today", received: received, overdueDays: 0 };
+    }
+    return { label: "待收", kind: "pending", received: received, overdueDays: 0 };
+  }
+
+  function buildLoanRows(debtors) {
+    const today = todayYMD();
+    const rows = [];
+    (debtors || []).forEach(function (d) {
+      if (d.closedAt) return;
+      const st = computeDebtorStatus(d, today);
+      rows.push({
+        id: d.id,
+        name: d.name || "—",
+        day: d.day,
+        principal: Number(d.principal) || 0,
+        amount: Number(d.amount) || 0,
+        received: st.received,
+        status: st.label,
+        statusKind: st.kind,
+        overdueDays: st.overdueDays,
+        raw: d
+      });
+    });
+    const order = { overdue: 0, "due-today": 1, pending: 2, paid: 3 };
+    rows.sort(function (a, b) {
+      const oa = order[a.statusKind] != null ? order[a.statusKind] : 9;
+      const ob = order[b.statusKind] != null ? order[b.statusKind] : 9;
+      if (oa !== ob) return oa - ob;
+      if (a.overdueDays !== b.overdueDays) return b.overdueDays - a.overdueDays;
+      return String(a.name).localeCompare(String(b.name), "zh-Hant");
+    });
+    return rows;
+  }
+
+  async function fetchJson(url) {
+    const res = await fetch(url, { method: "GET", cache: "no-store" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    return res.json();
+  }
+
+  function renderStrategyRow(key, label, item) {
+    if (!item || !item.date || !Array.isArray(item.numbers) || !item.numbers.length) {
+      return '<div class="strategy-row is-empty" data-strategy-game="' + key + '">' +
+        '<strong class="strategy-game">' + label + '</strong>' +
+        '<span class="strategy-date">尚無資料</span>' +
+        '<span class="strategy-current">等待排程更新</span>' +
+        '<span class="strategy-next">—</span></div>';
+    }
+    const numbers = item.numbers.map(function (number) { return String(number).padStart(2, "0"); }).join("、");
+    const heads = Array.isArray(item.nextHeads) ? item.nextHeads.join("頭 × ") + "頭" : (item.nextHeads || "—");
+    return '<div class="strategy-row" data-strategy-game="' + key + '">' +
+      '<strong class="strategy-game">' + label + '</strong>' +
+      '<span class="strategy-date">' + escapeHtml(item.date + (item.time ? "  " + item.time : "")) + '</span>' +
+      '<span class="strategy-current">本期：' + escapeHtml(numbers) + '</span>' +
+      '<span class="strategy-next">下期預計:<b class="strategy-heads">' + escapeHtml(heads) + '</b></span></div>';
+  }
+
+  async function loadStrategyE() {
+    const rows = document.getElementById("strategy-rows");
+    if (!rows) return;
+    try {
+      const data = await fetchJson("/api/strategy-e");
+      rows.innerHTML = renderStrategyRow("california", "加州彩", data.california) +
+        renderStrategyRow("lotto539", "今彩539", data.lotto539);
+      if (strategyRetryTimer) {
+        clearTimeout(strategyRetryTimer);
+        strategyRetryTimer = null;
+      }
+    } catch (error) {
+      if (!rows.querySelector(".strategy-row:not(.is-empty)")) {
+        rows.innerHTML =
+          '<div class="strategy-row is-empty"><strong class="strategy-game">加州彩</strong><span class="strategy-date">重新連線中</span><span class="strategy-current">資料暫時無法取得</span><span class="strategy-next">—</span></div>' +
+          '<div class="strategy-row is-empty"><strong class="strategy-game">今彩539</strong><span class="strategy-date">重新連線中</span><span class="strategy-current">資料暫時無法取得</span><span class="strategy-next">—</span></div>';
+      }
+      if (!strategyRetryTimer) {
+        strategyRetryTimer = setTimeout(function () {
+          strategyRetryTimer = null;
+          loadStrategyE();
+        }, 5000);
+      }
+    }
+  }
+
+  function tickClock() {
+    const d = new Date();
+    document.getElementById("clock-time").textContent =
+      pad2(d.getHours()) + ":" + pad2(d.getMinutes()) + ":" + pad2(d.getSeconds());
+    document.getElementById("clock-date").textContent =
+      d.getFullYear() + "/" + pad2(d.getMonth() + 1) + "/" + pad2(d.getDate()) +
+      " · 週" + WEEKDAYS[d.getDay()];
+  }
+
+  async function loadWeather() {
+    const el = document.getElementById("weather");
+    try {
+      const data = await fetchJson(ENDPOINTS.weather);
+      const cur = data.current || {};
+      const w = weatherFromCode(cur.weather_code);
+      const temp = cur.temperature_2m != null ? Math.round(cur.temperature_2m) : "—";
+      el.innerHTML =
+        '<span class="weather-icon">' + w.icon + "</span>" +
+        '<span class="weather-temp">' + temp + "°</span>" +
+        '<span class="weather-desc">桃園 · ' + escapeHtml(w.text) + "</span>";
+    } catch (e) {
+      el.innerHTML = '<span class="weather-error">天氣無法取得</span>';
+    }
+  }
+
+  function isLifanLoanRow(row) {
+    return /(?:\(|（)\s*立帆\s*(?:\)|）)/.test(String(row && row.name || ""));
+  }
+
+  function loanSummaryHtml(label, rows, className, subtitle) {
+    const loading = rows == null;
+    const list = loading ? [] : rows;
+    const totals = list.reduce(function (sum, row) {
+      sum.principal += Number(row.principal) || 0;
+      sum.monthly += Number(row.amount) || 0;
+      sum.received += Number(row.received) || 0;
+      if (row.statusKind === "overdue") sum.overdue++;
+      return sum;
+    }, { principal: 0, monthly: 0, received: 0, overdue: 0 });
+    const value = function (number, money) {
+      return loading ? "—" : (money ? formatWan(number) : String(number));
+    };
+    return '<section class="loan-kpi-group ' + (className || "") + '">' +
+      '<div class="loan-kpi-group-name"><strong>' + escapeHtml(label) + '</strong><span>' +
+        (loading ? "載入中" : escapeHtml((subtitle ? subtitle + " · " : "") + list.length + " 人")) + '</span></div>' +
+      '<div class="loan-kpi"><span class="loan-kpi-label">本金</span><strong class="loan-kpi-value">' + value(totals.principal, true) + '</strong></div>' +
+      '<div class="loan-kpi"><span class="loan-kpi-label">月收</span><strong class="loan-kpi-value">' + value(totals.monthly, true) + '</strong></div>' +
+      '<div class="loan-kpi"><span class="loan-kpi-label">已收</span><strong class="loan-kpi-value">' + value(totals.received, true) + '</strong></div>' +
+      '<div class="loan-kpi"><span class="loan-kpi-label">逾期</span><strong class="loan-kpi-value">' + value(totals.overdue, false) + '</strong></div>' +
+      '</section>';
+  }
+
+  function loanTableRowHtml(r) {
+    const pillClass = r.statusKind === "overdue" ? "overdue"
+      : r.statusKind === "due-today" ? "due-today"
+      : r.statusKind === "paid" ? "paid" : "pending";
+    return "<tr class=\"" + (isLifanLoanRow(r) ? "loan-lifan-row" : "") + "\">" +
+      "<td data-col=\"name\" class=\"loan-name-cell\" tabindex=\"0\" data-loan-details-id=\"" +
+        escapeHtml(String(r.id)) + "\">" + escapeHtml(r.name) + "</td>" +
+      "<td data-col=\"day\" class=\"num\">" + escapeHtml(String(r.day)) + "</td>" +
+      "<td data-col=\"principal\" class=\"num\">" + formatMoney(r.principal) + "</td>" +
+      "<td data-col=\"monthly\" class=\"num\">" + formatMoney(r.amount) + "</td>" +
+      "<td data-col=\"received\" class=\"num\">" + formatMoney(r.received) + "</td>" +
+      "<td data-col=\"status\"><span class=\"status-pill " + pillClass + "\">" + escapeHtml(r.status) + "</span>" +
+        (r.statusKind === "overdue" || r.statusKind === "due-today"
+          ? "<button type=\"button\" class=\"row-pay-btn\" data-pay-id=\"" + escapeHtml(String(r.id)) +
+            "\" data-pay-name=\"" + escapeHtml(r.name) + "\" data-pay-amount=\"" + r.amount + "\">還款</button>"
+          : "") +
+      "</td></tr>";
+  }
+
+  function loanHoverValue(label, value, empty) {
+    return '<span class="loan-hover-label">' + escapeHtml(label) + '</span>' +
+      '<span class="loan-hover-value' + (empty ? ' is-empty' : '') + '">' + escapeHtml(value) + '</span>';
+  }
+
+  function hideLoanHoverCard() {
+    const card = document.getElementById("loan-hover-card");
+    if (card) card.hidden = true;
+  }
+
+  function showLoanHoverCard(target) {
+    const id = target && target.dataset ? target.dataset.loanDetailsId : "";
+    const row = (state.loan.rows || []).find(function (item) { return String(item.id) === String(id); });
+    if (!row) return;
+    const raw = row.raw || {};
+    const interestNumber = Number(raw.interest);
+    const hasInterest = raw.interest !== "" && raw.interest != null && Number.isFinite(interestNumber);
+    const phone = String(raw.phone || "").trim();
+    const notes = String(raw.notes || "").trim();
+    const card = document.getElementById("loan-hover-card");
+    card.classList.toggle("is-lifan", isLifanLoanRow(row));
+    card.innerHTML = '<div class="loan-hover-title">' + escapeHtml(row.name) + '</div>' +
+      '<div class="loan-hover-grid">' +
+        loanHoverValue("姓名", row.name, false) +
+        loanHoverValue("月付款日", "每月 " + row.day + " 日", false) +
+        loanHoverValue("月應收金額", formatMoney(row.amount) + " 元", false) +
+        loanHoverValue("本金", formatMoney(row.principal) + " 元", false) +
+        loanHoverValue("利息", hasInterest ? formatMoney(interestNumber) + " 元" : "未設定", !hasInterest) +
+        loanHoverValue("電話", phone || "未設定", !phone) +
+        loanHoverValue("備註", notes || "未設定", !notes) +
+      '</div>';
+    card.hidden = false;
+    card.style.visibility = "hidden";
+    const rect = target.getBoundingClientRect();
+    const width = card.offsetWidth;
+    const height = card.offsetHeight;
+    let left = rect.right + 10;
+    if (left + width > window.innerWidth - 10) left = rect.left - width - 10;
+    left = Math.max(10, left);
+    const top = Math.max(10, Math.min(rect.top, window.innerHeight - height - 10));
+    card.style.left = left + "px";
+    card.style.top = top + "px";
+    card.style.visibility = "visible";
+  }
+
+  function renderLoan() {
+    hideLoanHoverCard();
+    const body = document.getElementById("loan-body");
+    const stats = document.getElementById("loan-stats");
+    const s = state.loan;
+
+    if (s.status === "loading") {
+      body.innerHTML = '<div class="state-msg"><div class="spinner"></div>載入中…</div>';
+      stats.innerHTML = loanSummaryHtml("主要帳", null, "", "") +
+        loanSummaryHtml("立帆", null, "is-lifan", "其他股東");
+      return;
+    }
+    if (s.status === "error") {
+      body.innerHTML = '<div class="state-msg error">讀取失敗<br><span style="font-size:11px;opacity:.7">' +
+        escapeHtml(s.error || "未知錯誤") + "</span></div>";
+      stats.innerHTML = '<div class="loan-kpi is-error"><span class="loan-kpi-label">借貸總覽</span><strong class="loan-kpi-value">讀取失敗</strong></div>';
+      return;
+    }
+
+    const rows = s.rows;
+    if (!rows.length) {
+      body.innerHTML = '<div class="state-msg">目前沒有借款資料</div>';
+      stats.innerHTML = loanSummaryHtml("主要帳", [], "", "") +
+        loanSummaryHtml("立帆", [], "is-lifan", "其他股東");
+      return;
+    }
+
+    const primaryRows = rows.filter(function (row) { return !isLifanLoanRow(row); });
+    const lifanRows = rows.filter(isLifanLoanRow);
+    stats.innerHTML = loanSummaryHtml("主要帳", primaryRows, "", "") +
+      loanSummaryHtml("立帆", lifanRows, "is-lifan", "其他股東");
+
+    let html = '<table class="data-table"><thead><tr>' +
+      "<th data-col=\"name\">借款人</th><th data-col=\"day\" class=\"num\">日</th><th data-col=\"principal\" class=\"num\">本金</th>" +
+      "<th data-col=\"monthly\" class=\"num\">月收</th><th data-col=\"received\" class=\"num\">已收</th><th data-col=\"status\">狀態</th>" +
+      "</tr></thead><tbody>";
+
+    const sortedRows = function (groupRows) { return groupRows.map(function (row, index) {
+      return { row: row, index: index };
+    }).sort(function (a, b) {
+      const dayA = Number(a.row.day);
+      const dayB = Number(b.row.day);
+      const safeDayA = Number.isFinite(dayA) ? dayA : 99;
+      const safeDayB = Number.isFinite(dayB) ? dayB : 99;
+      return safeDayA - safeDayB || a.index - b.index;
+    }).map(function (item) { return item.row; }); };
+
+    [
+      { label: "主要帳", rows: sortedRows(primaryRows), className: "" },
+      { label: "立帆｜其他股東", rows: sortedRows(lifanRows), className: "is-lifan" }
+    ].forEach(function (group) {
+      if (!group.rows.length) return;
+      html += '<tr class="loan-ledger-group-row ' + group.className + '"><td colspan="6">' +
+        escapeHtml(group.label) + '<span class="loan-ledger-group-count">' + group.rows.length + ' 人</span></td></tr>';
+      limitedRows("loan", group.rows).forEach(function (row) {
+        html += loanTableRowHtml(row);
+      });
+    });
+    html += "</tbody></table>";
+    body.innerHTML = html;
+    applyColumnOrder("loan", body);
+  }
+
+  function pettyItemName(record) {
+    const item = String(record && record.item || "").trim();
+    if (["早餐", "午餐", "晚餐"].includes(item)) return "餐費（" + item + "）";
+    if (item === "加油") {
+      const vehicle = String(record && (record.vehicle || record.car || record["車輛"]) || "").trim();
+      return vehicle ? "加油（" + vehicle + "）" : "加油";
+    }
+    return item || "未分類";
+  }
+
+  function pettyUsageName(record) {
+    const raw = String(record && (record.usage || record.category || record.scope || record.accountType || record["用途"] || record["分類"]) || "").trim();
+    if (/^(公司|公用|company|business)$/i.test(raw)) return "公司";
+    if (/^(家用|家庭|私人|個人|home|personal)$/i.test(raw)) return "家用";
+    return raw;
+  }
+
+  function filteredPettyRecords(records) {
+    return records.filter(function (record) {
+      const date = normalizeDate(record.date) || "";
+      if (pettyFilters.start && (!date || date < pettyFilters.start)) return false;
+      if (pettyFilters.end && (!date || date > pettyFilters.end)) return false;
+      if (pettyFilters.usage && pettyUsageName(record) !== pettyFilters.usage) return false;
+      if (pettyFilters.items.size && !pettyFilters.items.has(pettyItemName(record))) return false;
+      return true;
+    });
+  }
+
+  function syncPettyFilterOptions(records) {
+    const options = document.getElementById("petty-item-options");
+    const names = Array.from(new Set(records.map(pettyItemName))).sort(function (a, b) {
+      return a.localeCompare(b, "zh-Hant");
+    });
+    Array.from(pettyFilters.items).forEach(function (name) {
+      if (!names.includes(name)) pettyFilters.items.delete(name);
+    });
+    options.innerHTML = "";
+    names.forEach(function (name) {
+      const label = document.createElement("label");
+      label.className = "multi-filter-option";
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.value = name;
+      checkbox.checked = pettyFilters.items.has(name);
+      const text = document.createElement("span");
+      text.textContent = name;
+      label.appendChild(checkbox);
+      label.appendChild(text);
+      options.appendChild(label);
+    });
+    const selected = pettyFilters.items.size;
+    document.getElementById("petty-item-summary").textContent = selected ? "項目：已選 " + selected + " 項" : "項目：全部";
+  }
+
+  function renderPetty() {
+    const body = document.getElementById("petty-body");
+    const stats = document.getElementById("petty-stats");
+    const s = state.petty;
+
+    if (s.status === "loading") {
+      body.innerHTML = '<div class="state-msg"><div class="spinner"></div>載入中…</div>';
+      stats.innerHTML = "";
+      return;
+    }
+    if (s.status === "error") {
+      body.innerHTML = '<div class="state-msg error">讀取失敗<br><span style="font-size:11px;opacity:.7">' +
+        escapeHtml(s.error || "未知錯誤") + "</span></div>";
+      stats.innerHTML = '<span class="stat danger"><span class="stat-val">錯誤</span></span>';
+      return;
+    }
+
+    const records = s.records || [];
+    syncPettyFilterOptions(records);
+    const bal = Number(s.balance) || 0;
+    const balClass = bal >= 0 ? "ok" : "danger";
+    const filtered = filteredPettyRecords(records);
+    stats.innerHTML =
+      '<span class="stat ' + balClass + '"><span class="stat-label">餘額</span><span class="stat-val">' + formatMoney(bal) + "</span></span>" +
+      '<span class="stat neutral"><span class="stat-label">顯示</span><span class="stat-val">' + filtered.length + " / " + records.length + "</span></span>";
+
+    if (!records.length) {
+      body.innerHTML = '<div class="state-msg">目前沒有零用金紀錄</div>';
+      return;
+    }
+    if (!filtered.length) {
+      body.innerHTML = '<div class="state-msg">沒有符合查詢條件的紀錄</div>';
+      return;
+    }
+
+    const sorted = filtered.slice().sort(function (a, b) {
+      const da = normalizeDate(a.date) || "";
+      const db = normalizeDate(b.date) || "";
+      if (da !== db) return db.localeCompare(da);
+      return 0;
+    });
+
+    let html = '<table class="data-table"><thead><tr>' +
+      "<th data-col=\"date\">日期</th><th data-col=\"usage\">用途</th><th data-col=\"item\">項目</th><th data-col=\"amount\" class=\"num\">異動</th>" +
+      "<th data-col=\"balance\" class=\"num\">結餘</th><th data-col=\"note\">備註</th>" +
+      "<th data-col=\"receipt\">發票</th>" +
+      "</tr></thead><tbody>";
+
+    limitedRows("petty", sorted).forEach(function (r) {
+      const amt = Number(r.amount) || 0;
+      const cls = amt > 0 ? "pos" : amt < 0 ? "neg" : "muted";
+      const note = r.description != null ? r.description : "";
+      html += "<tr>" +
+        "<td data-col=\"date\">" + escapeHtml(normalizeDate(r.date) || r.date || "—") + "</td>" +
+        "<td data-col=\"usage\">" + escapeHtml(pettyUsageName(r) || "—") + "</td>" +
+        "<td data-col=\"item\" title=\"" + escapeHtml(pettyItemName(r)) + "\">" + escapeHtml(pettyItemName(r)) + "</td>" +
+        "<td data-col=\"amount\" class=\"num " + cls + "\">" + formatMoneySigned(amt) + "</td>" +
+        "<td data-col=\"balance\" class=\"num\">" + formatMoney(r.balance) + "</td>" +
+        "<td data-col=\"note\" class=\"muted\" title=\"" + escapeHtml(note) + "\">" + escapeHtml(note || "—") + "</td>" +
+        "<td data-col=\"receipt\">" + arenaImageLink(r.receiptUrl, "發票") + "</td>" +
+        "</tr>";
+    });
+    html += "</tbody></table>";
+    body.innerHTML = html;
+    applyColumnOrder("petty", body);
+  }
+
+  function filteredArenaRecords(records) {
+    const keyword = arenaFilters.keyword.trim().toLowerCase();
+    return records.filter(function (r) {
+      const date = normalizeDate(r.date) || String(r.date || "");
+      if (arenaFilters.start && (!date || date < arenaFilters.start)) return false;
+      if (arenaFilters.end && (!date || date > arenaFilters.end)) return false;
+      const result = Number(r.result);
+      if (arenaFilters.result === "win" && !(result > 0)) return false;
+      if (arenaFilters.result === "loss" && !(result < 0)) return false;
+      if (keyword) {
+        const searchable = (String(r.name || "") + " " + String(r.group || "")).toLowerCase();
+        if (!searchable.includes(keyword)) return false;
+      }
+      return true;
+    });
+  }
+
+  function renderArenaStatsOnly(recordsOverride) {
+    const s = state.arena;
+    const select = document.getElementById("arena-sheet-select");
+    const parent = document.getElementById("arena-stats");
+    const records = Array.isArray(recordsOverride) ? recordsOverride : (s.records || []);
+    let sumResult = 0, sumRolling = 0, nResult = 0, nRolling = 0;
+    records.forEach(function (r) {
+      if (r.result != null && r.result !== "" && !Number.isNaN(Number(r.result))) {
+        sumResult += Number(r.result);
+        nResult++;
+      }
+      if (r.rolling != null && r.rolling !== "" && !Number.isNaN(Number(r.rolling))) {
+        sumRolling += Number(r.rolling);
+        nRolling++;
+      }
+    });
+
+    const resClass = sumResult > 0 ? "ok" : sumResult < 0 ? "danger" : "neutral";
+    const allRecords = s.records || [];
+    let fullResult = 0, fullRolling = 0;
+    allRecords.forEach(function (r) {
+      if (r.result != null && r.result !== "" && !Number.isNaN(Number(r.result))) fullResult += Number(r.result);
+      if (r.rolling != null && r.rolling !== "" && !Number.isNaN(Number(r.rolling))) fullRolling += Number(r.rolling);
+    });
+    const sheetTotal = s.total != null && !Number.isNaN(Number(s.total))
+      ? Number(s.total)
+      : -(fullResult + fullRolling * ARENA_ROLLING_RATE);
+    const totalClass = sheetTotal > 0 ? "ok" : sheetTotal < 0 ? "danger" : "neutral";
+
+    Array.from(parent.children).forEach(function (ch) {
+      if (ch.id !== "arena-sheet-select") ch.remove();
+    });
+
+    function addStat(html) {
+      const wrap = document.createElement("span");
+      wrap.innerHTML = html;
+      parent.insertBefore(wrap.firstChild, select);
+    }
+
+    if (s.status === "ok") {
+      addStat('<span class="stat is-clickable ' + resClass + '" data-arena-daily="1" title="點擊看每日明細"><span class="stat-label">輸贏</span><span class="stat-val">' + formatMoneySigned(sumResult) + "</span></span>");
+      addStat('<span class="stat is-clickable info" data-arena-daily="1" title="點擊看每日明細"><span class="stat-label">洗碼</span><span class="stat-val">' + formatMoney(sumRolling) + "</span></span>");
+      addStat('<span class="stat is-clickable ' + totalClass + '" data-arena-daily="1" title="工作表 U10 · 點擊看每日明細"><span class="stat-label">總計</span><span class="stat-val">' + formatMoneySigned(sheetTotal) + "</span></span>");
+      addStat('<span class="stat neutral"><span class="stat-label">筆數</span><span class="stat-val">' + records.length + "</span></span>");
+    }
+  }
+
+  /* 每日明細：依日期分組，總計 = 輸贏 + 洗碼 × 200 */
+  function arenaDailyRows(records) {
+    const byDate = {};
+    (records || []).forEach(function (r) {
+      const date = normalizeDate(r.date) || String(r.date || "");
+      if (!date) return;
+      if (!byDate[date]) byDate[date] = { date: date, result: 0, rolling: 0, count: 0 };
+      const res = Number(r.result);
+      const roll = Number(r.rolling);
+      if (r.result != null && r.result !== "" && !Number.isNaN(res)) byDate[date].result += res;
+      if (r.rolling != null && r.rolling !== "" && !Number.isNaN(roll)) byDate[date].rolling += roll;
+      byDate[date].count++;
+    });
+    return Object.keys(byDate).sort().map(function (d) {
+      const row = byDate[d];
+      row.total = row.result + row.rolling * ARENA_ROLLING_RATE;
+      return row;
+    });
+  }
+
+  function shortDate(ymd) {
+    const parts = String(ymd).split("-");
+    return parts.length === 3 ? Number(parts[1]) + "/" + parts[2] : ymd;
+  }
+
+  function openArenaDaily() {
+    const s = state.arena;
+    if (s.status !== "ok") return;
+    const rows = arenaDailyRows(filteredArenaRecords(s.records || []));
+    const body = document.getElementById("arena-daily-body");
+
+    document.getElementById("arena-daily-title").textContent =
+      "小巨蛋每日明細" + (s.sheet ? " · " + s.sheet : "");
+
+    if (!rows.length) {
+      body.innerHTML = '<div class="state-msg">沒有符合查詢條件的紀錄</div>';
+    } else {
+      let sumResult = 0, sumRolling = 0, sumCount = 0;
+      let html = '<table class="data-table"><thead><tr>' +
+        "<th>日期</th><th class=\"num\">輸贏</th><th class=\"num\">洗碼</th>" +
+        "<th class=\"num\">總計</th><th class=\"num\">筆數</th>" +
+        "</tr></thead><tbody>";
+      rows.forEach(function (r) {
+        sumResult += r.result;
+        sumRolling += r.rolling;
+        sumCount += r.count;
+        html += "<tr>" +
+          "<td>" + escapeHtml(shortDate(r.date)) + "</td>" +
+          "<td class=\"num " + signClass(r.result) + "\">" + formatMoneySigned(r.result) + "</td>" +
+          "<td class=\"num\">" + formatMoney(r.rolling) + "</td>" +
+          "<td class=\"num " + signClass(r.total) + "\">" + formatMoneySigned(r.total) + "</td>" +
+          "<td class=\"num\">" + r.count + "</td>" +
+          "</tr>";
+      });
+      const sumTotal = sumResult + sumRolling * ARENA_ROLLING_RATE;
+      html += "</tbody><tfoot><tr>" +
+        "<td>合計</td>" +
+        "<td class=\"num " + signClass(sumResult) + "\">" + formatMoneySigned(sumResult) + "</td>" +
+        "<td class=\"num\">" + formatMoney(sumRolling) + "</td>" +
+        "<td class=\"num " + signClass(sumTotal) + "\">" + formatMoneySigned(sumTotal) + "</td>" +
+        "<td class=\"num\">" + sumCount + "</td>" +
+        "</tr></tfoot></table>";
+      body.innerHTML = html;
+    }
+
+    const lightbox = document.getElementById("arena-daily-lightbox");
+    lightbox.classList.add("is-open");
+    lightbox.setAttribute("aria-hidden", "false");
+    document.getElementById("arena-daily-close").focus();
+  }
+
+  function closeArenaDaily() {
+    const lightbox = document.getElementById("arena-daily-lightbox");
+    lightbox.classList.remove("is-open");
+    lightbox.setAttribute("aria-hidden", "true");
+  }
+
+  function signClass(n) {
+    return n > 0 ? "pos" : n < 0 ? "neg" : "muted";
+  }
+
+  function populateSheetSelect(sheets, current) {
+    const select = document.getElementById("arena-sheet-select");
+    const list = Array.isArray(sheets) ? sheets.slice() : [];
+    select.innerHTML = "";
+    if (!list.length) {
+      select.innerHTML = '<option value="">—</option>';
+      select.disabled = true;
+      return;
+    }
+    list.slice().reverse().forEach(function (sh) {
+      const opt = document.createElement("option");
+      opt.value = sh;
+      opt.textContent = sh;
+      if (sh === current) opt.selected = true;
+      select.appendChild(opt);
+    });
+    if (current && !list.includes(current)) {
+      const opt = document.createElement("option");
+      opt.value = current;
+      opt.textContent = current;
+      opt.selected = true;
+      select.appendChild(opt);
+    }
+    select.disabled = false;
+  }
+
+  function latestArenaWeekSheet(sheets) {
+    return (Array.isArray(sheets) ? sheets : []).find(function (sheet) {
+      return /^\d{4}$/.test(String(sheet || "").trim());
+    }) || "";
+  }
+
+  function arenaImageLink(url, label) {
+    if (!url) return '<span class="muted">—</span>';
+    const safeUrl = escapeHtml(String(url));
+    return '<a class="arena-link" href="' + safeUrl + '" data-arena-image="' + safeUrl +
+      '" data-arena-label="' + escapeHtml(label) + '" target="_blank" rel="noopener">開啟</a>';
+  }
+
+  function renderArena() {
+    const body = document.getElementById("arena-body");
+    const s = state.arena;
+
+    if (s.status === "loading") {
+      body.innerHTML = '<div class="state-msg"><div class="spinner"></div>載入中…</div>';
+      return;
+    }
+    if (s.status === "error") {
+      body.innerHTML = '<div class="state-msg error">讀取失敗<br><span style="font-size:11px;opacity:.7">' +
+        escapeHtml(s.error || "未知錯誤") + "</span></div>";
+      const parent = document.getElementById("arena-stats");
+      Array.from(parent.children).forEach(function (ch) {
+        if (ch.id !== "arena-sheet-select") ch.remove();
+      });
+      const err = document.createElement("span");
+      err.className = "stat danger";
+      err.innerHTML = '<span class="stat-val">錯誤</span>';
+      parent.insertBefore(err, document.getElementById("arena-sheet-select"));
+      return;
+    }
+
+    populateSheetSelect(s.sheets, s.sheet);
+    const dateRangeActive = !!(arenaFilters.start || arenaFilters.end);
+    const records = dateRangeActive && (s.allRecords || []).length ? s.allRecords : (s.records || []);
+    if (!records.length) {
+      renderArenaStatsOnly(records);
+      body.innerHTML = '<div class="state-msg">本週尚無紀錄</div>';
+      return;
+    }
+
+    const filtered = filteredArenaRecords(records);
+    renderArenaStatsOnly(filtered);
+    if (!filtered.length) {
+      body.innerHTML = '<div class="state-msg">沒有符合查詢條件的紀錄</div>';
+      return;
+    }
+
+    const sorted = filtered.slice().sort(function (a, b) {
+      const dateOrder = String(normalizeDate(b.date) || b.date || "")
+        .localeCompare(String(normalizeDate(a.date) || a.date || ""));
+      if (dateOrder) return dateOrder;
+      return String(a.seq || "").localeCompare(String(b.seq || ""), "zh-Hant", {
+        numeric: true,
+        sensitivity: "base"
+      });
+    });
+
+    let html = '<table class="data-table"><thead><tr>' +
+      "<th data-col=\"date\">日期</th><th data-col=\"seq\">單號</th><th data-col=\"group\">組別</th><th data-col=\"name\">姓名</th>" +
+      "<th data-col=\"result\" class=\"num\">勝負</th><th data-col=\"rolling\" class=\"num\">洗碼</th>" +
+      "<th data-col=\"redSlip\">紅單</th><th data-col=\"lineReport\">線報表</th><th data-col=\"note\">備註</th>" +
+      "</tr></thead><tbody>";
+
+    limitedRows("arena", sorted).forEach(function (r) {
+      const res = r.result;
+      const roll = r.rolling;
+      let resHtml, rollHtml;
+      if (res == null || res === "") {
+        resHtml = '<span class="muted">—</span>';
+      } else {
+        const n = Number(res);
+        const cls = n > 0 ? "pos" : n < 0 ? "neg" : "muted";
+        resHtml = '<span class="' + cls + '">' + formatMoneySigned(n) + "</span>";
+      }
+      if (roll == null || roll === "") {
+        rollHtml = '<span class="muted">—</span>';
+      } else {
+        rollHtml = formatMoney(roll);
+      }
+      const note = r.note != null ? r.note : "";
+      html += "<tr>" +
+        "<td data-col=\"date\">" + escapeHtml(normalizeDate(r.date) || r.date || "—") + "</td>" +
+        "<td data-col=\"seq\">" + escapeHtml(r.seq || "—") + "</td>" +
+        "<td data-col=\"group\">" + escapeHtml(r.group || "—") + "</td>" +
+        "<td data-col=\"name\" title=\"" + escapeHtml(r.name || "") + "\">" + escapeHtml(r.name || "—") + "</td>" +
+        "<td data-col=\"result\" class=\"num\">" + resHtml + "</td>" +
+        "<td data-col=\"rolling\" class=\"num\">" + rollHtml + "</td>" +
+        "<td data-col=\"redSlip\">" + arenaImageLink(r.redSlip, "紅單") + "</td>" +
+        "<td data-col=\"lineReport\">" + arenaImageLink(r.lineReport, "線報表") + "</td>" +
+        "<td data-col=\"note\" class=\"muted\" title=\"" + escapeHtml(note) + "\">" + escapeHtml(note || "—") + "</td>" +
+        "</tr>";
+    });
+    html += "</tbody></table>";
+    body.innerHTML = html;
+    applyColumnOrder("arena", body);
+  }
+
+  async function loadLoan() {
+    state.loan.status = "loading";
+    renderLoan();
+    try {
+      const json = await fetchJson(ENDPOINTS.loan);
+      if (!json || json.ok === false) {
+        throw new Error((json && json.error) || "伺服器回傳失敗");
+      }
+      const debtors = (json.data && json.data.debtors) || [];
+      state.loan.debtors = debtors;
+      state.loan.rows = buildLoanRows(debtors);
+      state.loan.status = "ok";
+      state.loan.error = null;
+    } catch (e) {
+      state.loan.status = "error";
+      state.loan.error = (e && e.message) || String(e);
+      state.loan.debtors = [];
+      state.loan.rows = [];
+    }
+    syncQuickEditBorrowers();
+    renderLoan();
+  }
+
+  async function loadPetty() {
+    state.petty.status = "loading";
+    renderPetty();
+    try {
+      const json = await fetchJson(ENDPOINTS.petty);
+      if (!json || json.ok === false) {
+        throw new Error((json && json.error) || "伺服器回傳失敗");
+      }
+      const data = json.data || {};
+      state.petty.balance = data.balance != null ? Number(data.balance) : 0;
+      state.petty.records = Array.isArray(data.records) ? data.records : [];
+      state.petty.status = "ok";
+      state.petty.error = null;
+    } catch (e) {
+      state.petty.status = "error";
+      state.petty.error = (e && e.message) || String(e);
+      state.petty.records = [];
+    }
+    renderPetty();
+  }
+
+  async function loadArena(sheetName) {
+    const requestedSheet = /^\d{4}$/.test(String(sheetName || "").trim())
+      ? String(sheetName).trim()
+      : "";
+    const loadVersion = ++arenaLoadVersion;
+    state.arena.status = "loading";
+    renderArena();
+    try {
+      let url = ENDPOINTS.arena;
+      if (requestedSheet) url += (url.indexOf("?") >= 0 ? "&" : "?") + "sheet=" + encodeURIComponent(requestedSheet);
+      let json = await fetchJson(url);
+      if (!json || json.ok === false) {
+        throw new Error((json && json.error) || "伺服器回傳失敗");
+      }
+
+      // The spreadsheet API may default to a non-week helper sheet (for example
+      // "薪資設定"). When the dashboard is in automatic mode, explicitly load
+      // the first weekly sheet returned by the API instead.
+      if (!requestedSheet) {
+        const availableSheets = Array.isArray(json.sheets) ? json.sheets : [];
+        const latestWeek = latestArenaWeekSheet(availableSheets);
+        if (latestWeek && String(json.sheet || "") !== latestWeek) {
+          const latestUrl = ENDPOINTS.arena +
+            (ENDPOINTS.arena.indexOf("?") >= 0 ? "&" : "?") +
+            "sheet=" + encodeURIComponent(latestWeek);
+          const latestJson = await fetchJson(latestUrl);
+          if (!latestJson || latestJson.ok === false) {
+            throw new Error((latestJson && latestJson.error) || "最新週次讀取失敗");
+          }
+          if (!Array.isArray(latestJson.sheets)) latestJson.sheets = availableSheets;
+          json = latestJson;
+        }
+      }
+      state.arena.sheet = json.sheet || requestedSheet || null;
+      state.arena.sheets = (Array.isArray(json.sheets) ? json.sheets : (state.arena.sheets || []))
+        .filter(function (sheet) { return /^\d{4}$/.test(String(sheet || "").trim()); });
+      state.arena.records = Array.isArray(json.records) ? json.records : [];
+      state.arena.allRecords = state.arena.records.map(function (record) {
+        return Object.assign({}, record, { week: state.arena.sheet });
+      });
+      state.arena.allWeeksStatus = "loading";
+      const apiTotal = json.U10 != null ? json.U10
+        : json.u10 != null ? json.u10
+        : json.total != null ? json.total
+        : json.summary && json.summary.total != null ? json.summary.total
+        : null;
+      state.arena.total = apiTotal != null && apiTotal !== "" && !Number.isNaN(Number(apiTotal)) ? Number(apiTotal) : null;
+      state.arena.status = "ok";
+      state.arena.error = null;
+      renderArena();
+
+      const currentSheet = state.arena.sheet;
+      const otherSheets = state.arena.sheets.filter(function (week) { return week !== currentSheet; });
+      if (!otherSheets.length) {
+        state.arena.allWeeksStatus = "ok";
+        return;
+      }
+
+      Promise.all(otherSheets.map(function (week) {
+        const otherUrl = ENDPOINTS.arena + (ENDPOINTS.arena.indexOf("?") >= 0 ? "&" : "?") + "sheet=" + encodeURIComponent(week);
+        return fetchJson(otherUrl)
+          .then(function (weekJson) {
+            if (!weekJson || weekJson.ok === false) return [];
+            return (Array.isArray(weekJson.records) ? weekJson.records : []).map(function (record) {
+              return Object.assign({}, record, { week: week });
+            });
+          })
+          .catch(function () { return []; });
+      })).then(function (weekGroups) {
+        if (loadVersion !== arenaLoadVersion) return;
+        state.arena.allRecords = state.arena.allRecords.concat([].concat.apply([], weekGroups));
+        state.arena.allWeeksStatus = "ok";
+        renderArena();
+      });
+      return;
+    } catch (e) {
+      if (loadVersion !== arenaLoadVersion) return;
+      state.arena.status = "error";
+      state.arena.error = (e && e.message) || String(e);
+      state.arena.records = [];
+      state.arena.allRecords = [];
+      state.arena.allWeeksStatus = "error";
+      state.arena.total = null;
+    }
+    renderArena();
+  }
+
+  function setPanelRefreshing(panel, busy) {
+    const button = document.getElementById("refresh-" + panel);
+    if (!button) return;
+    button.disabled = busy;
+    button.classList.toggle("spinning", busy);
+  }
+
+  async function refreshPanel(panel) {
+    const loaders = {
+      loan: loadLoan,
+      petty: loadPetty,
+      arena: function () { return loadArena(state.arena.sheet || uiConfig.defaultArenaSheet || undefined); }
+    };
+    if (!loaders[panel]) return;
+    setPanelRefreshing(panel, true);
+    addLog("重新整理「" + uiConfig.titles[panel] + "」");
+    try {
+      await loaders[panel]();
+      pushAiResponse(state[panel].status === "ok" ? "ok-line" : "err-line",
+        "已重新整理「" + uiConfig.titles[panel] + "」：" + statusLabel(state[panel]));
+    } finally {
+      setPanelRefreshing(panel, false);
+    }
+  }
+
+  async function refreshAll() {
+    const btn = document.getElementById("btn-refresh");
+    btn.classList.add("spinning");
+    btn.disabled = true;
+    ["loan", "petty", "arena"].forEach(function (panel) { setPanelRefreshing(panel, true); });
+    addLog("重新整理三張表");
+    try {
+      await Promise.all([loadLoan(), loadPetty(), loadArena(state.arena.sheet || undefined), loadStrategyE()]);
+      pushAiResponse("info-line", "已重新整理三張表。借貸：" + statusLabel(state.loan) +
+        "｜零用金：" + statusLabel(state.petty) +
+        "｜小巨蛋：" + statusLabel(state.arena));
+    } finally {
+      btn.classList.remove("spinning");
+      btn.disabled = false;
+      ["loan", "petty", "arena"].forEach(function (panel) { setPanelRefreshing(panel, false); });
+    }
+  }
+
+  function statusLabel(s) {
+    if (s.status === "ok") return "OK";
+    if (s.status === "error") return "失敗";
+    return "載入中";
+  }
+
+  function quickLoanFields() {
+    return {
+      name: document.getElementById("quick-loan-name"),
+      principal: document.getElementById("quick-loan-principal"),
+      monthly: document.getElementById("quick-loan-monthly"),
+      day: document.getElementById("quick-loan-day"),
+      date: document.getElementById("quick-loan-date"),
+      prepaid: document.getElementById("quick-loan-prepaid")
+    };
+  }
+
+  function loadQuickLoanDraft() {
+    const fields = quickLoanFields();
+    fields.date.value = todayYMD();
+    fields.prepaid.value = "2";
+    try {
+      const saved = JSON.parse(localStorage.getItem(LS_QUICK_LOAN) || "{}");
+      Object.keys(fields).forEach(function (key) {
+        if (saved[key] != null && saved[key] !== "") fields[key].value = String(saved[key]);
+      });
+    } catch (e) { /* use defaults */ }
+  }
+
+  function saveQuickLoanDraft() {
+    const fields = quickLoanFields();
+    const draft = {};
+    Object.keys(fields).forEach(function (key) { draft[key] = fields[key].value; });
+    try {
+      localStorage.setItem(LS_QUICK_LOAN, JSON.stringify(draft));
+    } catch (e) { /* ignore quota */ }
+  }
+
+  function clearQuickLoanForm() {
+    const fields = quickLoanFields();
+    fields.name.value = "";
+    fields.principal.value = "";
+    fields.monthly.value = "";
+    fields.day.value = "";
+    fields.date.value = todayYMD();
+    fields.prepaid.value = "2";
+    document.getElementById("quick-loan-error").textContent = "";
+    saveQuickLoanDraft();
+    fields.name.focus();
+  }
+
+  function quickLoanNumber(value) {
+    const normalized = String(value || "").replace(/[,，\s萬万期日]/g, "");
+    return Number(normalized);
+  }
+
+  async function submitQuickLoan() {
+    const fields = quickLoanFields();
+    const error = document.getElementById("quick-loan-error");
+    const name = fields.name.value.trim();
+    const principalWan = quickLoanNumber(fields.principal.value);
+    const monthlyWan = quickLoanNumber(fields.monthly.value);
+    const day = quickLoanNumber(fields.day.value);
+    const prepaid = quickLoanNumber(fields.prepaid.value);
+    const date = fields.date.value;
+
+    let message = "";
+    if (!name) message = "請填借款人姓名";
+    else if (!(principalWan > 0) || principalWan > 100000) message = "本金請填正確的萬數，例如 250";
+    else if (!(monthlyWan > 0) || monthlyWan > 10000) message = "每月應收請填正確的萬數，例如 5";
+    else if (!Number.isInteger(day) || day < 1 || day > 31) message = "收款日請填 1～31";
+    else if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) message = "請選擇借款起始日";
+    else if (!Number.isInteger(prepaid) || prepaid < 0 || prepaid > 12) message = "首次預收請填 0～12 期";
+
+    if (message) {
+      error.textContent = message;
+      return;
+    }
+
+    error.textContent = "";
+    saveQuickLoanDraft();
+    const principal = Math.round(principalWan * 10000);
+    const monthly = Math.round(monthlyWan * 10000);
+    const prompt = "請新增借款人：姓名「" + name + "」；本金 " + principal +
+      " 元；每月應收 " + monthly + " 元；每月 " + day +
+      " 日收款；借款起始日 " + date + "；首次預收 " + prepaid +
+      " 期；首期預收以每月應收乘以期數計算；首期預收以外另計已收 0 元；電話空白；備註空白。請建立完整新增預覽。";
+    await askAI(prompt);
+  }
+
+  const QUICK_EDIT_ITEMS = {
+    principal: { label: "修改後本金", prompt: "本金", unit: "萬", example: "250" },
+    monthlyAmount: { label: "修改後每月應收", prompt: "每月應收", unit: "萬", example: "5" },
+    day: { label: "修改後收款日", prompt: "每月收款日", unit: "日", example: "15" }
+  };
+
+  function setQuickLoanMode(mode) {
+    document.querySelectorAll("[data-quick-loan-panel]").forEach(function (panel) {
+      panel.hidden = panel.dataset.quickLoanPanel !== mode;
+    });
+    document.querySelectorAll("[data-quick-loan-mode]").forEach(function (button) {
+      const active = button.dataset.quickLoanMode === mode;
+      button.classList.toggle("is-active", active);
+      button.setAttribute("aria-pressed", active ? "true" : "false");
+    });
+    if (mode === "edit") syncQuickEditBorrowers();
+  }
+
+  function syncQuickEditBorrowers() {
+    const select = document.getElementById("quick-edit-borrower");
+    if (!select) return;
+    const previous = select.value;
+    const rows = (state.loan.rows || []).slice().sort(function (a, b) {
+      return Number(a.day) - Number(b.day) || String(a.name).localeCompare(String(b.name), "zh-Hant");
+    });
+    select.replaceChildren();
+    const placeholder = document.createElement("option");
+    placeholder.value = "";
+    placeholder.textContent = rows.length ? "請選擇借款人" : "目前沒有借款人";
+    select.appendChild(placeholder);
+    rows.forEach(function (row) {
+      const option = document.createElement("option");
+      option.value = String(row.id);
+      option.textContent = row.name + "｜" + row.day + " 日";
+      select.appendChild(option);
+    });
+    if (rows.some(function (row) { return String(row.id) === previous; })) select.value = previous;
+    updateQuickEditValueHint(false);
+  }
+
+  function selectedQuickEditBorrower() {
+    const id = document.getElementById("quick-edit-borrower").value;
+    return (state.loan.rows || []).find(function (row) { return String(row.id) === id; }) || null;
+  }
+
+  function updateQuickEditValueHint(clearValue) {
+    const item = document.getElementById("quick-edit-item").value;
+    const config = QUICK_EDIT_ITEMS[item] || QUICK_EDIT_ITEMS.principal;
+    const row = selectedQuickEditBorrower();
+    const input = document.getElementById("quick-edit-value");
+    document.getElementById("quick-edit-value-label").textContent = config.label;
+    document.getElementById("quick-edit-unit").textContent = config.unit;
+    if (clearValue) input.value = "";
+    let current = "";
+    if (row) {
+      if (item === "principal") current = Number(row.principal) / 10000;
+      else if (item === "monthlyAmount") current = Number(row.amount) / 10000;
+      else current = Number(row.day);
+    }
+    input.placeholder = current !== "" ? "目前 " + current : config.example;
+    document.getElementById("quick-edit-error").textContent = "";
+  }
+
+  function clearQuickEditForm() {
+    document.getElementById("quick-edit-borrower").value = "";
+    document.getElementById("quick-edit-item").value = "principal";
+    document.getElementById("quick-edit-value").value = "";
+    updateQuickEditValueHint(false);
+    document.getElementById("quick-edit-borrower").focus();
+  }
+
+  async function submitQuickEdit() {
+    const row = selectedQuickEditBorrower();
+    const item = document.getElementById("quick-edit-item").value;
+    const config = QUICK_EDIT_ITEMS[item];
+    const rawValue = quickLoanNumber(document.getElementById("quick-edit-value").value);
+    const error = document.getElementById("quick-edit-error");
+
+    if (!row) {
+      error.textContent = "請選擇借款人";
+      return;
+    }
+    if (!config) {
+      error.textContent = "請選擇修改項目";
+      return;
+    }
+
+    let finalValue;
+    if (item === "day") {
+      if (!Number.isInteger(rawValue) || rawValue < 1 || rawValue > 31) {
+        error.textContent = "收款日請填 1～31";
+        return;
+      }
+      finalValue = rawValue;
+    } else {
+      if (!(rawValue > 0) || (item === "principal" && rawValue > 100000) ||
+          (item === "monthlyAmount" && rawValue > 10000)) {
+        error.textContent = config.label + "請填正確的萬數";
+        return;
+      }
+      finalValue = Math.round(rawValue * 10000);
+    }
+
+    error.textContent = "";
+    const valueText = item === "day" ? finalValue + " 日" : finalValue + " 元";
+    const prompt = "請修改 dashboard.loan.rows 中 debtorId（id）為「" + row.id +
+      "」、姓名「" + row.name + "」的" + config.prompt + "為 " + valueText +
+      "。只修改這一個項目，其他所有欄位必須保持原值，請建立修改預覽。";
+    await askAI(prompt);
+  }
+
+  function getLog() {
+    try {
+      const raw = localStorage.getItem(LS_LOG);
+      if (!raw) return [];
+      const arr = JSON.parse(raw);
+      return Array.isArray(arr) ? arr : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveLog(arr) {
+    try {
+      localStorage.setItem(LS_LOG, JSON.stringify(arr.slice(0, MAX_LOG)));
+    } catch (e) { /* ignore */ }
+  }
+
+  function addLog(text) {
+    const arr = getLog();
+    arr.unshift({ t: fullStamp(), text: text });
+    saveLog(arr);
+    renderLog();
+  }
+
+  function renderLog() {
+    const list = document.getElementById("log-list");
+    const arr = getLog();
+    document.getElementById("log-count").textContent = arr.length ? arr.length + " 筆" : "";
+    if (!arr.length) {
+      list.innerHTML = '<div class="log-empty">尚無紀錄</div>';
+      return;
+    }
+    list.innerHTML = arr.map(function (item) {
+      const timePart = (item.t || "").split(" ")[1] || item.t || "";
+      return '<div class="log-item">' +
+        '<span class="log-time">' + escapeHtml(timePart) + "</span>" +
+        '<span class="log-text" title="' + escapeHtml(item.text || "") + '">' + escapeHtml(item.text || "") + "</span>" +
+        "</div>";
+    }).join("");
+  }
+
+  /* ── 對話框拖曳 ── */
+
+  function chatDragDisabled() {
+    return window.matchMedia("(max-width: 760px)").matches;
+  }
+
+  function loadChatPos() {
+    try {
+      const p = JSON.parse(localStorage.getItem(LS_CHAT_POS) || "null");
+      if (!p || !isFinite(p.x) || !isFinite(p.y) || !(p.w > 0) || !(p.h > 0)) return null;
+      return { x: p.x, y: p.y, w: p.w, h: p.h };
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function saveChatPos(pos) {
+    try {
+      if (pos) localStorage.setItem(LS_CHAT_POS, JSON.stringify(pos));
+      else localStorage.removeItem(LS_CHAT_POS);
+    } catch (e) { /* ignore quota */ }
+  }
+
+  /* 讓視窗至少留一截標題列在畫面內，換螢幕或縮視窗都不會消失 */
+  function clampChatPos(pos) {
+    const margin = 48;
+    const maxX = Math.max(0, window.innerWidth - margin);
+    const maxY = Math.max(0, window.innerHeight - margin);
+    return {
+      x: Math.round(Math.min(Math.max(pos.x, margin - pos.w), maxX)),
+      y: Math.round(Math.min(Math.max(pos.y, 0), maxY)),
+      w: Math.round(pos.w),
+      h: Math.round(pos.h)
+    };
+  }
+
+  function applyChatPos(pos) {
+    const panel = document.getElementById("ai-chat-panel");
+    if (!pos || chatDragDisabled()) {
+      panel.classList.remove("is-dragged");
+      panel.style.left = panel.style.top = panel.style.width = panel.style.height = "";
+      return;
+    }
+    chatPos = clampChatPos(pos);
+    panel.classList.add("is-dragged");
+    panel.style.left = chatPos.x + "px";
+    panel.style.top = chatPos.y + "px";
+    panel.style.width = chatPos.w + "px";
+    panel.style.height = chatPos.h + "px";
+  }
+
+  function resetChatPos() {
+    chatPos = null;
+    saveChatPos(null);
+    applyChatPos(null);
+  }
+
+  function startChatDrag(e) {
+    if (chatDragDisabled()) return;
+    if (e.button !== undefined && e.button !== 0) return;
+    if (e.target.closest("button, input, textarea, a")) return;
+
+    const head = document.getElementById("ai-chat-head");
+    const panel = document.getElementById("ai-chat-panel");
+    const rect = panel.getBoundingClientRect();
+    const grabX = e.clientX - rect.left;
+    const grabY = e.clientY - rect.top;
+    const size = { w: rect.width, h: rect.height };
+
+    head.classList.add("is-grabbing");
+    try { head.setPointerCapture(e.pointerId); } catch (err) { /* 指標擷取失敗仍可用 window 事件 */ }
+
+    function onMove(ev) {
+      applyChatPos({ x: ev.clientX - grabX, y: ev.clientY - grabY, w: size.w, h: size.h });
+    }
+
+    function onUp() {
+      head.classList.remove("is-grabbing");
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onUp);
+      if (chatPos) saveChatPos(chatPos);
+    }
+
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onUp);
+  }
+
+  function openAiChat(focusComposer) {
+    const shell = document.getElementById("ai-chat-shell");
+    if (!shell.classList.contains("is-open")) {
+      aiLastFocus = document.activeElement;
+    }
+    shell.classList.add("is-open");
+    shell.setAttribute("aria-hidden", "false");
+    document.getElementById("ai-chat-open").setAttribute("aria-expanded", "true");
+    if (chatPos) applyChatPos(chatPos);
+    if (focusComposer !== false) {
+      document.getElementById("ai-dialog-input").focus();
+    }
+  }
+
+  function closeAiChat() {
+    const shell = document.getElementById("ai-chat-shell");
+    shell.classList.remove("is-open");
+    shell.setAttribute("aria-hidden", "true");
+    document.getElementById("ai-chat-open").setAttribute("aria-expanded", "false");
+    if (aiLastFocus && typeof aiLastFocus.focus === "function") aiLastFocus.focus();
+  }
+
+  function driveFileId(url) {
+    const source = String(url || "");
+    const match = source.match(/\/file\/d\/([^/]+)/) || source.match(/[?&]id=([^&]+)/);
+    return match ? match[1] : "";
+  }
+
+  function openArenaImage(url, label) {
+    const lightbox = document.getElementById("arena-image-lightbox");
+    const image = document.getElementById("arena-image-img");
+    const frame = document.getElementById("arena-image-frame");
+    const fallback = document.getElementById("arena-image-fallback");
+    const fileId = driveFileId(url);
+
+    document.getElementById("arena-image-title").textContent = (label || "圖片") + "預覽";
+    fallback.href = url;
+    image.style.display = "block";
+    frame.style.display = "none";
+    frame.removeAttribute("src");
+    image.alt = (label || "圖片") + "預覽";
+    image.onerror = function () {
+      image.style.display = "none";
+      if (fileId) {
+        frame.src = "https://drive.google.com/file/d/" + encodeURIComponent(fileId) + "/preview";
+        frame.style.display = "block";
+      }
+    };
+    image.src = fileId
+      ? "https://drive.google.com/thumbnail?id=" + encodeURIComponent(fileId) + "&sz=w1600"
+      : url;
+    lightbox.classList.add("is-open");
+    lightbox.setAttribute("aria-hidden", "false");
+    document.getElementById("arena-image-close").focus();
+  }
+
+  function closeArenaImage() {
+    const lightbox = document.getElementById("arena-image-lightbox");
+    const image = document.getElementById("arena-image-img");
+    const frame = document.getElementById("arena-image-frame");
+    lightbox.classList.remove("is-open");
+    lightbox.setAttribute("aria-hidden", "true");
+    image.removeAttribute("src");
+    frame.removeAttribute("src");
+  }
+
+  /* 同一天只顯示時間，跨天的舊訊息補上日期 */
+  function chatStampLabel(stamp) {
+    const s = String(stamp || "");
+    const parts = s.split(" ");
+    if (parts.length < 2) return s;
+    return parts[0] === fullStamp().split(" ")[0] ? parts[1] : s;
+  }
+
+  function renderAiMessage(cls, text, role, stamp) {
+    const el = document.getElementById("ai-output");
+    const empty = document.getElementById("ai-chat-empty");
+    if (empty) {
+      aiEmptyNode = empty;
+      empty.remove();
+    }
+
+    const message = document.createElement("article");
+    const messageRole = role === "user" ? "user" : "assistant";
+    message.className = "ai-message " + messageRole;
+    if (cls === "err-line") message.classList.add("error");
+    if (cls === "warn-line") message.classList.add("warning");
+
+    const meta = document.createElement("div");
+    meta.className = "ai-message-meta";
+    const speaker = document.createElement("span");
+    speaker.textContent = messageRole === "user" ? "你" : "營運助理";
+    const time = document.createElement("time");
+    time.textContent = chatStampLabel(stamp);
+    meta.appendChild(speaker);
+    meta.appendChild(time);
+
+    const copy = document.createElement("div");
+    copy.className = "ai-message-copy";
+    copy.textContent = String(text || "");
+    message.appendChild(meta);
+    message.appendChild(copy);
+
+    const typing = document.getElementById("ai-chat-typing");
+    el.insertBefore(message, typing);
+    el.scrollTop = el.scrollHeight;
+  }
+
+  function pushAiResponse(cls, text, role) {
+    const entry = {
+      cls: cls || "",
+      text: String(text || ""),
+      role: role === "user" ? "user" : "assistant",
+      t: fullStamp()
+    };
+    chatLog.push(entry);
+    if (chatLog.length > MAX_CHAT_LOG) chatLog.splice(0, chatLog.length - MAX_CHAT_LOG);
+    saveChatLog();
+    renderAiMessage(entry.cls, entry.text, entry.role, entry.t);
+  }
+
+  /* 對話簿與送給 AI 的上下文一起存，重開頁面才接得上 */
+  function saveChatLog() {
+    try {
+      localStorage.setItem(LS_CHAT_LOG, JSON.stringify({ log: chatLog, history: aiHistory }));
+    } catch (e) { /* ignore quota */ }
+  }
+
+  function restoreChatLog() {
+    let data = null;
+    try { data = JSON.parse(localStorage.getItem(LS_CHAT_LOG) || "null"); }
+    catch (e) { data = null; }
+    if (!data || !Array.isArray(data.log) || !data.log.length) return;
+
+    chatLog = data.log.slice(-MAX_CHAT_LOG).filter(function (item) {
+      return item && typeof item.text === "string";
+    });
+    if (Array.isArray(data.history)) {
+      data.history.slice(-MAX_AI_HISTORY).forEach(function (h) {
+        if (h && typeof h.content === "string") aiHistory.push(h);
+      });
+    }
+    chatLog.forEach(function (item) {
+      renderAiMessage(item.cls, item.text, item.role, item.t);
+    });
+  }
+
+  function clearChatLog() {
+    const el = document.getElementById("ai-output");
+    chatLog = [];
+    aiHistory.length = 0;
+    try { localStorage.removeItem(LS_CHAT_LOG); } catch (e) { /* ignore */ }
+    el.querySelectorAll(".ai-message").forEach(function (n) { n.remove(); });
+    if (aiEmptyNode && !document.getElementById("ai-chat-empty")) {
+      el.insertBefore(aiEmptyNode, el.firstChild);
+    }
+  }
+
+  function normalizeSettingsAction(action) {
+    if (!action || typeof action !== "object" || !action.args || typeof action.args !== "object") return null;
+    const args = action.args;
+    const panel = args.panel;
+    const validPanel = Object.prototype.hasOwnProperty.call(PANEL_LABELS, panel);
+    if (action.type === "panel_visibility" && validPanel && typeof args.visible === "boolean") return { type: action.type, args: { panel: panel, visible: args.visible } };
+    if (action.type === "panel_order" && exactPermutation(args.order, DEFAULT_UI_CONFIG.panelOrder)) return { type: action.type, args: { order: args.order.slice() } };
+    if (action.type === "column_order" && validPanel && exactPermutation(args.order, DEFAULT_UI_CONFIG.columns[panel])) return { type: action.type, args: { panel: panel, order: args.order.slice() } };
+    if (action.type === "panel_title" && validPanel && typeof args.title === "string" && args.title.trim() && args.title.trim().length <= 24) return { type: action.type, args: { panel: panel, title: args.title.trim() } };
+    if (action.type === "panel_color" && validPanel && COLOR_VALUES[args.color]) return { type: action.type, args: { panel: panel, color: args.color } };
+    if (action.type === "default_arena_sheet" && typeof args.sheet === "string" && args.sheet.trim().length <= 80) return { type: action.type, args: { sheet: args.sheet.trim() } };
+    if (action.type === "row_limit" && validPanel && Number.isInteger(args.limit) && args.limit >= 0 && args.limit <= 200) return { type: action.type, args: { panel: panel, limit: args.limit } };
+    if (action.type === "loan_add") {
+      const name = String(args.name || "").trim();
+      const day = Number(args.day);
+      const principal = Number(args.principal);
+      const monthlyAmount = Number(args.monthlyAmount);
+      const received = Number(args.received);
+      const phone = String(args.phone || "").trim();
+      const notes = String(args.notes || "").trim();
+      const firstPaymentDate = String(args.firstPaymentDate || "").trim();
+      const prepaidMonths = Number(args.prepaidMonths);
+      if (name && name.length <= 80 && Number.isInteger(day) && day >= 1 && day <= 31 && principal > 0 &&
+          monthlyAmount >= 0 && received >= 0 && phone.length <= 40 && notes.length <= 300 &&
+          /^\d{4}-\d{2}-\d{2}$/.test(firstPaymentDate) &&
+          Number.isInteger(prepaidMonths) && prepaidMonths >= 0 && prepaidMonths <= 12) {
+        return { type: action.type, args: { name: name, day: day, principal: principal, monthlyAmount: monthlyAmount, prepaidMonths: prepaidMonths, received: received, phone: phone, notes: notes, firstPaymentDate: firstPaymentDate } };
+      }
+    }
+    if (action.type === "loan_edit") {
+      const debtorId = String(args.debtorId || "").trim();
+      const currentName = String(args.currentName || "").trim();
+      const name = String(args.name || "").trim();
+      const day = Number(args.day);
+      const principal = Number(args.principal);
+      const monthlyAmount = Number(args.monthlyAmount);
+      const phone = String(args.phone || "").trim();
+      const notes = String(args.notes || "").trim();
+      const firstPaymentDate = String(args.firstPaymentDate || "").trim();
+      if (debtorId && currentName && name && Number.isInteger(day) && day >= 1 && day <= 31 && principal >= 0 && monthlyAmount >= 0 &&
+          phone.length <= 40 && notes.length <= 300 && (!firstPaymentDate || /^\d{4}-\d{2}-\d{2}$/.test(firstPaymentDate))) {
+        return { type: action.type, args: { debtorId: debtorId, currentName: currentName, name: name, day: day, principal: principal, monthlyAmount: monthlyAmount, phone: phone, notes: notes, firstPaymentDate: firstPaymentDate } };
+      }
+    }
+    if (action.type === "loan_payment") {
+      const debtorId = String(args.debtorId || "").trim();
+      const name = String(args.name || "").trim();
+      const amount = Number(args.amount);
+      const date = String(args.date || "").trim();
+      const note = String(args.note || "").trim();
+      if (debtorId && name && amount > 0 && (!date || /^\d{4}-\d{2}-\d{2}$/.test(date)) && note.length <= 300) {
+        return { type: action.type, args: { debtorId: debtorId, name: name, amount: amount, date: date, note: note } };
+      }
+    }
+    if (action.type === "loan_delete") {
+      const debtorId = String(args.debtorId || "").trim();
+      const name = String(args.name || "").trim();
+      if (debtorId && name) return { type: action.type, args: { debtorId: debtorId, name: name } };
+    }
+    return null;
+  }
+
+  function settingsActionText(action) {
+    const args = action.args;
+    if (action.type === "panel_visibility") return {
+      title: (args.visible ? "顯示" : "隱藏") + PANEL_LABELS[args.panel] + "區塊",
+      detail: "目前：" + (uiConfig.panelVisibility[args.panel] ? "顯示" : "隱藏") + "\n預覽：" + (args.visible ? "顯示" : "隱藏")
+    };
+    if (action.type === "panel_order") return {
+      title: "調整區塊順序",
+      detail: "目前：" + uiConfig.panelOrder.map(function (p) { return uiConfig.titles[p]; }).join(" → ") +
+        "\n預覽：" + args.order.map(function (p) { return uiConfig.titles[p]; }).join(" → ")
+    };
+    if (action.type === "column_order") return {
+      title: "調整「" + uiConfig.titles[args.panel] + "」欄位順序",
+      detail: "目前：" + uiConfig.columns[args.panel].map(function (c) { return COLUMN_LABELS[args.panel][c]; }).join(" → ") +
+        "\n預覽：" + args.order.map(function (c) { return COLUMN_LABELS[args.panel][c]; }).join(" → ")
+    };
+    if (action.type === "panel_title") return { title: "修改區塊標題", detail: "目前：" + uiConfig.titles[args.panel] + "\n預覽：" + args.title };
+    if (action.type === "panel_color") return { title: "修改「" + uiConfig.titles[args.panel] + "」主色", detail: "目前：" + COLOR_LABELS[uiConfig.colors[args.panel]] + "\n預覽：" + COLOR_LABELS[args.color] };
+    if (action.type === "default_arena_sheet") return { title: "設定小巨蛋預設週次", detail: "目前：" + (uiConfig.defaultArenaSheet || "自動最新") + "\n預覽：" + (args.sheet || "自動最新") };
+    if (action.type === "row_limit") return { title: "設定「" + uiConfig.titles[args.panel] + "」顯示筆數", detail: "目前：" + (uiConfig.rowLimits[args.panel] || "全部") + "\n預覽：" + (args.limit || "全部") };
+    if (action.type === "loan_add") {
+      const prepaidTotal = args.prepaidMonths * args.monthlyAmount;
+      return {
+        title: "新增借款人「" + args.name + "」",
+        detail: "收款日：每月 " + args.day + " 日" +
+          "\n本金：" + formatMoney(args.principal) +
+          "\n月收：" + formatMoney(args.monthlyAmount) +
+          "\n借款起始日：" + args.firstPaymentDate +
+          "\n首次預收：" + (args.prepaidMonths > 0
+            ? args.prepaidMonths + " 期 · 首期收款 " + formatMoney(prepaidTotal) + "（" + formatMoney(args.monthlyAmount) + " × " + args.prepaidMonths + "）"
+            : "不預收（每期收）") +
+          (args.received > 0 ? "\n另計已收：" + formatMoney(args.received) : "") +
+          (args.phone ? "\n電話：" + args.phone : "") +
+          (args.notes ? "\n備註：" + args.notes : "")
+      };
+    }
+    if (action.type === "loan_edit") return {
+      title: "編輯借款人「" + args.currentName + "」",
+      detail: (args.currentName !== args.name ? "姓名：" + args.currentName + " → " + args.name + "\n" : "") +
+        "收款日：每月 " + args.day + " 日" +
+        "\n本金：" + formatMoney(args.principal) +
+        "\n月收：" + formatMoney(args.monthlyAmount) +
+        "\n首次應收：" + (args.firstPaymentDate || "未設定") +
+        "\n電話：" + (args.phone || "未設定") +
+        "\n備註：" + (args.notes || "未設定")
+    };
+    if (action.type === "loan_payment") return {
+      title: "登記「" + args.name + "」還款",
+      detail: "金額：" + formatMoney(args.amount) +
+        "\n日期：" + (args.date || "今天") +
+        "\n備註：" + (args.note || "AI 登記還款")
+    };
+    if (action.type === "loan_delete") return {
+      title: "永久刪除借款人「" + args.name + "」",
+      detail: "此操作會刪除借款人資料及全部還款紀錄，無法從工作台復原。"
+    };
+    return { title: "設定變更", detail: "請確認內容" };
+  }
+
+  async function applyLoanAddAction(action) {
+    const response = await fetch("/api/loan/add", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(action.args)
+    });
+    const data = await response.json().catch(function () { return {}; });
+    if (!response.ok || data.ok === false) throw new Error(data.error || ("HTTP " + response.status));
+    await loadLoan();
+  }
+
+  async function applyLoanWriteAction(action) {
+    const endpoints = {
+      loan_add: "/api/loan/add",
+      loan_edit: "/api/loan/edit",
+      loan_payment: "/api/loan/payment",
+      loan_delete: "/api/loan/delete"
+    };
+    const endpoint = endpoints[action.type];
+    if (!endpoint) throw new Error("不支援這項借貸操作。 ");
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(action.args)
+    });
+    const data = await response.json().catch(function () { return {}; });
+    if (!response.ok || data.ok === false) throw new Error(data.error || ("HTTP " + response.status));
+    await loadLoan();
+  }
+
+  function applySettingsAction(action) {
+    const args = action.args;
+    if (action.type === "panel_visibility") {
+      if (!args.visible) {
+        const othersVisible = Object.keys(uiConfig.panelVisibility).some(function (panel) { return panel !== args.panel && uiConfig.panelVisibility[panel]; });
+        if (!othersVisible) throw new Error("至少要保留一個可見區塊。 ");
+      }
+      uiConfig.panelVisibility[args.panel] = args.visible;
+    } else if (action.type === "panel_order") {
+      uiConfig.panelOrder = args.order.slice();
+    } else if (action.type === "column_order") {
+      uiConfig.columns[args.panel] = args.order.slice();
+    } else if (action.type === "panel_title") {
+      uiConfig.titles[args.panel] = args.title;
+    } else if (action.type === "panel_color") {
+      uiConfig.colors[args.panel] = args.color;
+    } else if (action.type === "default_arena_sheet") {
+      if (args.sheet && state.arena.sheets.length && !state.arena.sheets.includes(args.sheet)) throw new Error("找不到這個小巨蛋週次，請重新選擇。 ");
+      uiConfig.defaultArenaSheet = args.sheet;
+    } else if (action.type === "row_limit") {
+      uiConfig.rowLimits[args.panel] = args.limit;
+    } else {
+      throw new Error("不支援這項設定。 ");
+    }
+    uiConfig = normalizeUiConfig(uiConfig);
+    saveUiConfig();
+    applyUiConfig(true);
+    if (action.type === "default_arena_sheet" && args.sheet && args.sheet !== state.arena.sheet) loadArena(args.sheet);
+  }
+
+  function renderSettingsAction(rawAction) {
+    const action = normalizeSettingsAction(rawAction);
+    if (!action) return;
+    const textValue = settingsActionText(action);
+    const output = document.getElementById("ai-output");
+    const card = document.createElement("article");
+    card.className = "ai-action-card";
+    const kicker = document.createElement("div");
+    kicker.className = "ai-action-kicker";
+    const isLoanAction = action.type.indexOf("loan_") === 0;
+    const loanLabels = {
+      loan_add: { preview: "新增預覽 · 尚未寫入", confirm: "確認新增", busy: "新增中…", done: "借款人已新增 · 已寫入帳冊", verb: "新增" },
+      loan_edit: { preview: "編輯預覽 · 尚未寫入", confirm: "確認修改", busy: "修改中…", done: "借款人已修改 · 已寫入帳冊", verb: "修改" },
+      loan_payment: { preview: "還款預覽 · 尚未寫入", confirm: "確認還款", busy: "登記中…", done: "還款已登記 · 已寫入帳冊", verb: "還款" },
+      loan_delete: { preview: "永久刪除預覽 · 尚未執行", confirm: "確認刪除", busy: "刪除中…", done: "借款人已刪除 · 已寫入帳冊", verb: "刪除" }
+    };
+    const loanLabel = loanLabels[action.type];
+    kicker.textContent = isLoanAction ? loanLabel.preview : "設定預覽 · 尚未套用";
+    const title = document.createElement("div");
+    title.className = "ai-action-title";
+    title.textContent = textValue.title;
+    const detail = document.createElement("div");
+    detail.className = "ai-action-change";
+    detail.textContent = textValue.detail;
+    const buttons = document.createElement("div");
+    buttons.className = "ai-action-buttons";
+    const applyButton = document.createElement("button");
+    applyButton.type = "button";
+    applyButton.className = "ai-action-button primary";
+    applyButton.textContent = isLoanAction ? loanLabel.confirm : "確認套用";
+    if (action.type === "loan_delete") applyButton.classList.add("danger");
+    const cancelButton = document.createElement("button");
+    cancelButton.type = "button";
+    cancelButton.className = "ai-action-button";
+    cancelButton.textContent = "取消";
+    buttons.appendChild(applyButton);
+    buttons.appendChild(cancelButton);
+    card.appendChild(kicker);
+    card.appendChild(title);
+    card.appendChild(detail);
+    card.appendChild(buttons);
+    output.insertBefore(card, document.getElementById("ai-chat-typing"));
+
+    function finish(stateClass, label) {
+      card.classList.add(stateClass);
+      kicker.textContent = label;
+      applyButton.disabled = true;
+      cancelButton.disabled = true;
+    }
+    applyButton.addEventListener("click", async function () {
+      applyButton.disabled = true;
+      cancelButton.disabled = true;
+      applyButton.textContent = isLoanAction ? loanLabel.busy : "套用中…";
+      try {
+        if (isLoanAction) {
+          await applyLoanWriteAction(action);
+          finish("is-applied", loanLabel.done);
+          addLog("AI " + loanLabel.verb + "：" + (action.args.name || action.args.currentName));
+          pushAiResponse("ok-line", "已完成「" + textValue.title + "」，借貸表已重新整理。 ");
+        } else {
+          applySettingsAction(action);
+          finish("is-applied", "設定已套用 · 儲存在本機");
+          addLog("AI 設定：" + textValue.title);
+          pushAiResponse("ok-line", "已套用「" + textValue.title + "」。帳冊資料沒有被修改。 ");
+        }
+      } catch (e) {
+        applyButton.disabled = false;
+        cancelButton.disabled = false;
+        applyButton.textContent = isLoanAction ? loanLabel.confirm : "確認套用";
+        pushAiResponse("err-line", (isLoanAction ? loanLabel.verb + "失敗：" : "設定無法套用：") + ((e && e.message) || String(e)));
+      }
+    });
+    cancelButton.addEventListener("click", function () {
+      const cancelMessage = isLoanAction ? "操作已取消 · 未寫入" : "設定已取消 · 未套用";
+      card.remove();
+      pushAiResponse("info-line", cancelMessage);
+      const input = document.getElementById("ai-dialog-input");
+      if (input) input.focus();
+      output.scrollTop = output.scrollHeight;
+    });
+    output.scrollTop = output.scrollHeight;
+  }
+
+  function setAiBusy(busy) {
+    aiBusy = busy;
+    const topButton = document.getElementById("ai-submit");
+    const dialogButton = document.getElementById("ai-dialog-submit");
+    const quickLoanButton = document.getElementById("quick-loan-submit");
+    const quickEditButton = document.getElementById("quick-edit-submit");
+    if (topButton) topButton.disabled = busy;
+    dialogButton.disabled = busy;
+    if (quickLoanButton) {
+      quickLoanButton.disabled = busy;
+      quickLoanButton.textContent = busy ? "AI 整理中" : "送給 AI";
+    }
+    if (quickEditButton) {
+      quickEditButton.disabled = busy;
+      quickEditButton.textContent = busy ? "AI 整理中" : "送給 AI";
+    }
+    if (topButton) topButton.textContent = busy ? "思考中" : "傳送";
+    dialogButton.textContent = busy ? "思考中" : "傳送";
+    document.getElementById("ai-chat-typing").classList.toggle("is-visible", busy);
+  }
+
+  function dashboardForAI() {
+    return {
+      generatedAt: new Date().toISOString(),
+      uiConfig: uiConfig,
+      availableArenaSheets: state.arena.sheets || [],
+      loan: {
+        status: state.loan.status,
+        today: todayYMD(),
+        rows: (state.loan.rows || []).slice(0, 100).map(function (r) {
+          const raw = r.raw || {};
+          const covered = r.amount > 0 ? Math.floor(r.received / r.amount) : 0;
+          const due = countPeriodsDueForDebtor(raw, todayYMD());
+          return {
+            id: r.id,
+            name: r.name,
+            day: r.day,
+            principal: r.principal,
+            monthlyAmount: r.amount,
+            received: r.received,
+            status: r.status,
+            overdueDays: r.overdueDays,
+            firstPaymentDate: normalizeDate(raw.firstPaymentDate) || "",
+            prepaidMonths: Number(raw.prepaidMonths) || 0,
+            nextDueDate: nextDueDateFor(raw),
+            periodsCovered: covered,
+            periodsDue: due,
+            periodsOwed: Math.max(0, due - covered),
+            phone: raw.phone ? String(raw.phone) : "",
+            notes: raw.notes ? String(raw.notes) : "",
+            payments: (Array.isArray(raw.payments) ? raw.payments : []).slice(-24).map(function (p) {
+              return {
+                date: normalizeDate(p.date) || String(p.date || ""),
+                amount: (Number(p.principal) || 0) + (Number(p.interest) || 0),
+                note: String(p.note || "")
+              };
+            })
+          };
+        })
+      },
+      petty: {
+        status: state.petty.status,
+        balance: state.petty.balance,
+        records: (state.petty.records || []).slice(0, 100)
+      },
+      arena: {
+        status: state.arena.status,
+        sheet: state.arena.sheet,
+        records: (state.arena.records || []).slice(0, 100)
+      }
+    };
+  }
+
+  async function askAI(raw) {
+    const message = String(raw || "").trim();
+    if (!message || aiBusy) return;
+
+    openAiChat(true);
+    pushAiResponse("", message, "user");
+    setAiBusy(true);
+    addLog("AI 對話：" + message);
+
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: message,
+          history: aiHistory,
+          dashboard: dashboardForAI()
+        })
+      });
+
+      const data = await response.json().catch(function () { return {}; });
+      if (!response.ok) {
+        throw new Error(data.error || ("HTTP " + response.status));
+      }
+
+      const answer = String(data.answer || "AI 沒有回傳文字。");
+      aiHistory.push({ role: "user", content: message });
+      aiHistory.push({ role: "assistant", content: answer });
+      if (aiHistory.length > MAX_AI_HISTORY) {
+        aiHistory.splice(0, aiHistory.length - MAX_AI_HISTORY);
+      }
+      pushAiResponse("ok-line", answer);
+      (Array.isArray(data.actions) ? data.actions : []).forEach(renderSettingsAction);
+    } catch (e) {
+      const detail = (e && e.message) || String(e);
+      const hint = location.protocol === "file:"
+        ? "請改用 start-boss-desk-ai.bat 開啟本機 AI 版。"
+        : detail;
+      pushAiResponse("err-line", "AI 連線失敗：" + hint);
+    } finally {
+      setAiBusy(false);
+      document.getElementById("ai-dialog-input").focus();
+    }
+  }
+
+  async function submitAiInput(input) {
+    const value = input.value;
+    if (!value.trim() || aiBusy) return;
+    input.value = "";
+    await askAI(value);
+  }
+
+  function helpText() {
+    return [
+      "本版為唯讀解析，不會寫回試算表。聽得懂的句型：",
+      "  · 「阿明還我300」／「王小明還款 5000」→ 解析還款金額",
+      "  · 「零用金扣80」／「零用金支 200」／「零用金入 500」→ 試算餘額",
+      "  · 「查本週小巨蛋」／「本週小巨蛋」→ 週帳合計",
+      "  · 「查阿明」／「阿明狀態」→ 該借款人摘要",
+      "  · 「說明」／「help」→ 顯示此說明"
+    ].join("\n");
+  }
+
+  function findDebtorByName(name) {
+    const q = String(name).trim();
+    if (!q) return null;
+    const rows = state.loan.rows || [];
+    let hit = rows.find(function (r) { return r.name === q; });
+    if (hit) return hit;
+    hit = rows.find(function (r) { return r.name.indexOf(q) >= 0; });
+    if (hit) return hit;
+    hit = rows.find(function (r) { return q.indexOf(r.name) >= 0; });
+    return hit || null;
+  }
+
+  function parseCommand(raw) {
+    const input = String(raw || "").trim();
+    if (!input) return { type: "empty" };
+
+    if (/^(說明|幫助|指令|help|\?)$/i.test(input)) {
+      return { type: "help" };
+    }
+
+    if (/查?(本週)?小巨蛋|小巨蛋(本週|週帳|合計)?/.test(input) && /查|本週|合計|統計/.test(input) ||
+        /^(查本週小巨蛋|本週小巨蛋|查小巨蛋)$/.test(input)) {
+      return { type: "arena_week" };
+    }
+    if (/小巨蛋/.test(input) && /查|本週/.test(input)) {
+      return { type: "arena_week" };
+    }
+
+    let m = input.match(/^零用金\s*(扣|支|支出|減|入|收|加|存)\s*([0-9,]+(?:\.\d+)?)\s*元?$/);
+    if (m) {
+      const verb = m[1];
+      let amt = parseFloat(m[2].replace(/,/g, ""));
+      const isIn = /入|收|加|存/.test(verb);
+      if (!isIn) amt = -Math.abs(amt);
+      else amt = Math.abs(amt);
+      return { type: "petty", amount: amt, verb: verb };
+    }
+    m = input.match(/^零用金\s*([+-])\s*([0-9,]+(?:\.\d+)?)\s*元?$/);
+    if (m) {
+      let amt = parseFloat(m[2].replace(/,/g, ""));
+      if (m[1] === "-") amt = -Math.abs(amt);
+      else amt = Math.abs(amt);
+      return { type: "petty", amount: amt };
+    }
+
+    m = input.match(/^查\s*(.+)$/);
+    if (m) {
+      const name = m[1].replace(/狀態$/, "").trim();
+      if (name && !/本週|小巨蛋|零用金/.test(name)) {
+        return { type: "lookup", name: name };
+      }
+    }
+    m = input.match(/^(.+?)\s*狀態$/);
+    if (m) {
+      return { type: "lookup", name: m[1].trim() };
+    }
+
+    m = input.match(/^(.+?)\s*(?:還我|還款|還)\s*([0-9,]+(?:\.\d+)?)\s*元?$/);
+    if (m) {
+      return {
+        type: "repay",
+        name: m[1].trim(),
+        amount: parseFloat(m[2].replace(/,/g, ""))
+      };
+    }
+
+    return { type: "unknown", input: input };
+  }
+
+  function runCommand(raw) {
+    const parsed = parseCommand(raw);
+    addLog("指令：" + raw);
+
+    if (parsed.type === "empty") {
+      pushAiResponse("warn-line", "請輸入指令。");
+      return;
+    }
+
+    if (parsed.type === "help") {
+      pushAiResponse("info-line", helpText());
+      return;
+    }
+
+    if (parsed.type === "repay") {
+      const d = findDebtorByName(parsed.name);
+      const nameShow = d ? d.name : parsed.name;
+      let msg = "解析到 " + nameShow + " 還款 $" + formatMoney(parsed.amount) + "（試算，未寫回）";
+      if (d) {
+        const newRecv = d.received + parsed.amount;
+        msg += "\n  目前已收 " + formatMoney(d.received) + " → 試算後 " + formatMoney(newRecv) +
+          "｜本金 " + formatMoney(d.principal) + "｜月收 " + formatMoney(d.amount) +
+          "｜狀態 " + d.status;
+      } else if (state.loan.status === "ok") {
+        msg += "\n  （名單中找不到「" + parsed.name + "」，僅解析金額）";
+      } else if (state.loan.status === "error") {
+        msg += "\n  （借貸資料未載入，無法比對姓名）";
+      }
+      pushAiResponse("ok-line", msg);
+      return;
+    }
+
+    if (parsed.type === "petty") {
+      if (state.petty.status !== "ok") {
+        pushAiResponse("warn-line", "零用金資料未就緒（" + statusLabel(state.petty) + "），無法試算。解析金額：" +
+          formatMoneySigned(parsed.amount));
+        return;
+      }
+      const bal = Number(state.petty.balance) || 0;
+      const next = bal + parsed.amount;
+      const kind = parsed.amount < 0 ? "支出" : "收入";
+      pushAiResponse("ok-line",
+        "解析到零用金" + kind + " $" + formatMoney(Math.abs(parsed.amount)) +
+        "（試算，未寫回）\n  目前餘額 " + formatMoney(bal) + " → 試算後 " + formatMoney(next));
+      return;
+    }
+
+    if (parsed.type === "arena_week") {
+      if (state.arena.status !== "ok") {
+        pushAiResponse("warn-line", "小巨蛋資料未就緒（" + statusLabel(state.arena) + "）。");
+        return;
+      }
+      const records = state.arena.records || [];
+      let sumR = 0, sumRoll = 0;
+      records.forEach(function (r) {
+        if (r.result != null && r.result !== "" && !Number.isNaN(Number(r.result))) sumR += Number(r.result);
+        if (r.rolling != null && r.rolling !== "" && !Number.isNaN(Number(r.rolling))) sumRoll += Number(r.rolling);
+      });
+      pushAiResponse("ok-line",
+        "本週小巨蛋（" + (state.arena.sheet || "最新") + "）\n" +
+        "  輸贏合計 " + formatMoneySigned(sumR) +
+        "｜洗碼合計 " + formatMoney(sumRoll) +
+        "｜筆數 " + records.length);
+      return;
+    }
+
+    if (parsed.type === "lookup") {
+      if (state.loan.status !== "ok") {
+        pushAiResponse("warn-line", "借貸資料未就緒（" + statusLabel(state.loan) + "），無法查詢。");
+        return;
+      }
+      const d = findDebtorByName(parsed.name);
+      if (!d) {
+        pushAiResponse("warn-line", "找不到借款人「" + parsed.name + "」。目前共 " +
+          (state.loan.rows || []).length + " 人在表中。");
+        return;
+      }
+      pushAiResponse("ok-line",
+        d.name + " 狀態\n" +
+        "  本金 " + formatMoney(d.principal) +
+        "｜月收 " + formatMoney(d.amount) +
+        "｜已收 " + formatMoney(d.received) +
+        "｜收款日 每月 " + d.day + " 號" +
+        "｜狀態 " + d.status);
+      return;
+    }
+
+    pushAiResponse("err-line", "聽不懂「" + raw + "」。\n" + helpText());
+  }
+
+  function init() {
+    fitDeskToViewport();
+    window.addEventListener("resize", fitDeskToViewport);
+    tickClock();
+    setInterval(tickClock, 1000);
+
+    loadQuickLoanDraft();
+    renderLog();
+    applyUiConfig(false);
+
+    document.querySelectorAll("[data-ledger-tab]").forEach(function (button) {
+      button.addEventListener("click", function () {
+        switchLedgerPanel(button.dataset.ledgerTab);
+      });
+    });
+
+    document.querySelectorAll("[data-collapse-panel]").forEach(function (button) {
+      button.addEventListener("click", function () {
+        toggleBottomPanel(button.dataset.collapsePanel);
+      });
+    });
+
+    document.getElementById("quick-loan-form").addEventListener("input", function () {
+      document.getElementById("quick-loan-error").textContent = "";
+      saveQuickLoanDraft();
+    });
+    document.getElementById("quick-loan-form").addEventListener("submit", async function (event) {
+      event.preventDefault();
+      if (!aiBusy) await submitQuickLoan();
+    });
+    document.getElementById("quick-loan-clear").addEventListener("click", clearQuickLoanForm);
+    document.querySelectorAll("[data-quick-loan-mode]").forEach(function (button) {
+      button.addEventListener("click", function () {
+        setQuickLoanMode(button.dataset.quickLoanMode);
+      });
+    });
+    document.getElementById("quick-edit-borrower").addEventListener("change", function () {
+      updateQuickEditValueHint(true);
+    });
+    document.getElementById("quick-edit-item").addEventListener("change", function () {
+      updateQuickEditValueHint(true);
+    });
+    document.getElementById("quick-edit-value").addEventListener("input", function () {
+      document.getElementById("quick-edit-error").textContent = "";
+    });
+    document.getElementById("quick-edit-form").addEventListener("submit", async function (event) {
+      event.preventDefault();
+      if (!aiBusy) await submitQuickEdit();
+    });
+    document.getElementById("quick-edit-clear").addEventListener("click", clearQuickEditForm);
+
+    document.getElementById("petty-date-start").addEventListener("change", function () {
+      pettyFilters.start = this.value;
+      renderPetty();
+    });
+    document.getElementById("petty-date-end").addEventListener("change", function () {
+      pettyFilters.end = this.value;
+      renderPetty();
+    });
+    document.getElementById("petty-usage-filter").addEventListener("change", function () {
+      pettyFilters.usage = this.value;
+      renderPetty();
+    });
+    document.getElementById("petty-item-options").addEventListener("change", function (event) {
+      const checkbox = event.target;
+      if (!checkbox || checkbox.type !== "checkbox") return;
+      if (checkbox.checked) pettyFilters.items.add(checkbox.value);
+      else pettyFilters.items.delete(checkbox.value);
+      renderPetty();
+    });
+    document.getElementById("petty-filter-clear").addEventListener("click", function () {
+      pettyFilters.start = "";
+      pettyFilters.end = "";
+      pettyFilters.usage = "";
+      pettyFilters.items.clear();
+      document.getElementById("petty-date-start").value = "";
+      document.getElementById("petty-date-end").value = "";
+      document.getElementById("petty-usage-filter").value = "";
+      document.getElementById("petty-item-filter").open = false;
+      renderPetty();
+    });
+
+    document.getElementById("arena-date-start").addEventListener("change", function () {
+      arenaFilters.start = this.value;
+      renderArena();
+    });
+    document.getElementById("arena-date-end").addEventListener("change", function () {
+      arenaFilters.end = this.value;
+      renderArena();
+    });
+    document.getElementById("arena-result-filter").addEventListener("change", function () {
+      arenaFilters.result = this.value;
+      renderArena();
+    });
+    document.getElementById("arena-keyword").addEventListener("input", function () {
+      arenaFilters.keyword = this.value;
+      renderArena();
+    });
+    document.getElementById("arena-filter-clear").addEventListener("click", function () {
+      arenaFilters.start = "";
+      arenaFilters.end = "";
+      arenaFilters.result = "";
+      arenaFilters.keyword = "";
+      document.getElementById("arena-date-start").value = "";
+      document.getElementById("arena-date-end").value = "";
+      document.getElementById("arena-result-filter").value = "";
+      document.getElementById("arena-keyword").value = "";
+      renderArena();
+    });
+    document.getElementById("arena-body").addEventListener("click", function (event) {
+      const link = event.target.closest("a[data-arena-image]");
+      if (!link) return;
+      event.preventDefault();
+      openArenaImage(link.dataset.arenaImage, link.dataset.arenaLabel);
+    });
+    document.getElementById("petty-body").addEventListener("click", function (event) {
+      const link = event.target.closest("a[data-arena-image]");
+      if (!link) return;
+      event.preventDefault();
+      openArenaImage(link.dataset.arenaImage, link.dataset.arenaLabel);
+    });
+    document.getElementById("arena-stats").addEventListener("click", function (event) {
+      if (!event.target.closest("[data-arena-daily]")) return;
+      openArenaDaily();
+    });
+    document.getElementById("arena-daily-close").addEventListener("click", closeArenaDaily);
+    document.getElementById("arena-daily-lightbox").addEventListener("click", function (event) {
+      if (event.target === this) closeArenaDaily();
+    });
+
+    document.getElementById("arena-image-close").addEventListener("click", closeArenaImage);
+    document.getElementById("arena-image-lightbox").addEventListener("click", function (event) {
+      if (event.target === this) closeArenaImage();
+    });
+
+    document.getElementById("btn-refresh").addEventListener("click", function () {
+      refreshAll();
+    });
+
+    ["loan", "petty", "arena"].forEach(function (panel) {
+      document.getElementById("refresh-" + panel).addEventListener("click", function () {
+        refreshPanel(panel);
+      });
+    });
+
+    document.getElementById("ai-chat-open").addEventListener("click", function () {
+      openAiChat(true);
+    });
+
+    document.getElementById("ai-chat-close").addEventListener("click", closeAiChat);
+    document.getElementById("ai-chat-backdrop").addEventListener("click", closeAiChat);
+
+    // 到期／逾期列的「還款」鈕：帶出跟 AI 一樣的還款預覽卡，確認後才寫入
+    const loanBody = document.getElementById("loan-body");
+    loanBody.addEventListener("mouseover", function (event) {
+      const target = event.target.closest("[data-loan-details-id]");
+      if (target) showLoanHoverCard(target);
+    });
+    loanBody.addEventListener("mouseout", function (event) {
+      const target = event.target.closest("[data-loan-details-id]");
+      if (target && (!event.relatedTarget || !target.contains(event.relatedTarget))) hideLoanHoverCard();
+    });
+    loanBody.addEventListener("focusin", function (event) {
+      const target = event.target.closest("[data-loan-details-id]");
+      if (target) showLoanHoverCard(target);
+    });
+    loanBody.addEventListener("focusout", hideLoanHoverCard);
+    loanBody.addEventListener("scroll", hideLoanHoverCard, { passive: true });
+
+    loanBody.addEventListener("click", function (e) {
+      const btn = e.target.closest(".row-pay-btn");
+      if (!btn) return;
+      openAiChat(false);
+      renderSettingsAction({
+        type: "loan_payment",
+        args: {
+          debtorId: btn.dataset.payId,
+          name: btn.dataset.payName,
+          amount: Number(btn.dataset.payAmount),
+          date: todayYMD(),
+          note: "工作台快速登記"
+        }
+      });
+    });
+
+    restoreChatLog();
+    document.getElementById("ai-chat-clear").addEventListener("click", function () {
+      if (!chatLog.length) return;
+      if (!window.confirm("要清空對話簿嗎？共 " + chatLog.length + " 則訊息，清掉後 AI 也會忘記先前的上下文。")) return;
+      clearChatLog();
+      addLog("對話簿已清空");
+    });
+
+    chatPos = loadChatPos();
+    if (chatPos) applyChatPos(chatPos);
+    document.getElementById("ai-chat-head").addEventListener("pointerdown", startChatDrag);
+    document.getElementById("ai-chat-head").addEventListener("dblclick", function (e) {
+      if (e.target.closest("button, input, textarea, a")) return;
+      resetChatPos();
+      addLog("對話框位置已還原");
+    });
+    window.addEventListener("resize", function () {
+      hideLoanHoverCard();
+      applyChatPos(chatPos);
+    });
+    document.getElementById("ai-settings-reset").addEventListener("click", function () {
+      if (!window.confirm("要把區塊顯示、順序、標題、顏色、預設週次、顯示筆數與欄位順序全部重設嗎？")) return;
+      uiConfig = cloneDefaultUiConfig();
+      saveUiConfig();
+      applyUiConfig(true);
+      addLog("工作台版面已重設");
+      pushAiResponse("ok-line", "工作台顯示設定已恢復預設值；帳冊資料沒有被修改。 ");
+    });
+
+    document.addEventListener("keydown", function (e) {
+      if (e.key !== "Escape") return;
+      if (document.getElementById("arena-image-lightbox").classList.contains("is-open")) {
+        closeArenaImage();
+      } else if (document.getElementById("arena-daily-lightbox").classList.contains("is-open")) {
+        closeArenaDaily();
+      } else if (document.getElementById("ai-chat-shell").classList.contains("is-open")) {
+        closeAiChat();
+      }
+    });
+
+    document.getElementById("ai-dialog-submit").addEventListener("click", async function () {
+      await submitAiInput(document.getElementById("ai-dialog-input"));
+    });
+
+    document.getElementById("ai-dialog-input").addEventListener("keydown", function (e) {
+      if (e.key === "Enter" && !e.shiftKey && !e.isComposing) {
+        e.preventDefault();
+        document.getElementById("ai-dialog-submit").click();
+      }
+    });
+
+    document.getElementById("arena-sheet-select").addEventListener("change", function () {
+      const v = this.value;
+      if (v) {
+        addLog("切換小巨蛋週次：" + v);
+        loadArena(v);
+      }
+    });
+
+    loadLoan();
+    loadPetty();
+    loadArena(uiConfig.defaultArenaSheet || undefined);
+    loadStrategyE();
+    setInterval(loadStrategyE, 60000);
+    document.addEventListener("visibilitychange", function () {
+      if (!document.hidden) loadStrategyE();
+    });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+})();
+</script>
+</body>
+</html>
